@@ -108,8 +108,11 @@ $processing_text = $spf_general['button_processing_text'] ?? 'Finding your best 
             switch ( $field_type ) :
 
                 /* ── Dropdown (Select) ──────────── */
-                case 'select': ?>
-                    <div class="spf-select-wrap">
+                case 'select':
+                    $spf_arrow_icon = $GLOBALS['spf_elementor_arrow_icon'] ?? '';
+                    $spf_wrap_class = $spf_arrow_icon ? 'spf-select-wrap spf-has-arrow-icon' : 'spf-select-wrap';
+                    ?>
+                    <div class="<?php echo esc_attr( $spf_wrap_class ); ?>">
                     <select
                         name="<?php echo esc_attr( $field_key ); ?>"
                         id="<?php echo esc_attr( $field_id ); ?>"
@@ -121,6 +124,7 @@ $processing_text = $spf_general['button_processing_text'] ?? 'Finding your best 
                         <option value="<?php echo esc_attr( $option ); ?>"><?php echo esc_html( $option ); ?></option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if ( $spf_arrow_icon ) echo $spf_arrow_icon; // Rendered by Elementor Icons_Manager, already safe ?>
                     </div>
                 <?php break;
 

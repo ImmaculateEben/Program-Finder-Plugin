@@ -346,40 +346,46 @@ class SPF_Elementor_Widget extends Widget_Base {
             'tab'   => Controls_Manager::TAB_STYLE,
         ) );
 
-        $this->add_control( 'arrow_style', array(
-            'label'        => __( 'Style', 'smart-programme-finder' ),
-            'type'         => Controls_Manager::SELECT,
-            'default'      => 'chevron',
-            'options'      => array(
-                'chevron'  => __( 'Chevron (V)', 'smart-programme-finder' ),
-                'triangle' => __( 'Triangle (filled)', 'smart-programme-finder' ),
-                'caret'    => __( 'Caret (thin)', 'smart-programme-finder' ),
-                'none'     => __( 'Hidden', 'smart-programme-finder' ),
+        $this->add_control( 'arrow_show', array(
+            'label'        => __( 'Show Arrow', 'smart-programme-finder' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'smart-programme-finder' ),
+            'label_off'    => __( 'No', 'smart-programme-finder' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ) );
+
+        $this->add_control( 'arrow_icon', array(
+            'label'     => __( 'Icon', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::ICONS,
+            'default'   => array(
+                'value'   => 'fas fa-chevron-down',
+                'library' => 'fa-solid',
             ),
-            'prefix_class' => 'spf-arrow-',
+            'condition' => array( 'arrow_show' => 'yes' ),
         ) );
 
         $this->add_control( 'arrow_color', array(
             'label'     => __( 'Color', 'smart-programme-finder' ),
             'type'      => Controls_Manager::COLOR,
-            'global'    => array(),
+            'global'    => array( 'active' => true ),
             'default'   => '#64748b',
             'selectors' => array(
                 '{{WRAPPER}} .spf-select-wrap' => '--spf-arrow-color: {{VALUE}};',
             ),
-            'condition' => array( 'arrow_style!' => 'none' ),
+            'condition' => array( 'arrow_show' => 'yes' ),
         ) );
 
         $this->add_responsive_control( 'arrow_size', array(
             'label'      => __( 'Size', 'smart-programme-finder' ),
             'type'       => Controls_Manager::SLIDER,
             'size_units' => array( 'px' ),
-            'range'      => array( 'px' => array( 'min' => 4, 'max' => 20, 'step' => 1 ) ),
-            'default'    => array( 'unit' => 'px', 'size' => 8 ),
+            'range'      => array( 'px' => array( 'min' => 8, 'max' => 40, 'step' => 1 ) ),
+            'default'    => array( 'unit' => 'px', 'size' => 14 ),
             'selectors'  => array(
                 '{{WRAPPER}} .spf-select-wrap' => '--spf-arrow-size: {{SIZE}}{{UNIT}};',
             ),
-            'condition' => array( 'arrow_style!' => 'none' ),
+            'condition' => array( 'arrow_show' => 'yes' ),
         ) );
 
         $this->add_responsive_control( 'arrow_offset', array(
@@ -391,7 +397,7 @@ class SPF_Elementor_Widget extends Widget_Base {
             'selectors'  => array(
                 '{{WRAPPER}} .spf-select-wrap' => '--spf-arrow-offset: {{SIZE}}{{UNIT}};',
             ),
-            'condition' => array( 'arrow_style!' => 'none' ),
+            'condition' => array( 'arrow_show' => 'yes' ),
         ) );
 
         $this->end_controls_section();
@@ -1117,7 +1123,18 @@ class SPF_Elementor_Widget extends Widget_Base {
             <?php if ( 'yes' === $show_desc && '' !== $form_desc ) : ?>
                 <p class="spf-form-description"><?php echo esc_html( $form_desc ); ?></p>
             <?php endif; ?>
-            <?php echo do_shortcode( '[spf_form id="' . esc_attr( $form_id ) . '"]' ); ?>
+            <?php
+            /* Pass arrow icon to the form template via global */
+            $arrow_icon_html = '';
+            if ( 'yes' === ( $s['arrow_show'] ?? 'yes' ) && ! empty( $s['arrow_icon']['value'] ) ) {
+                ob_start();
+                \Elementor\Icons_Manager::render_icon( $s['arrow_icon'], array( 'aria-hidden' => 'true', 'class' => 'spf-select-arrow-icon' ) );
+                $arrow_icon_html = ob_get_clean();
+            }
+            $GLOBALS['spf_elementor_arrow_icon'] = $arrow_icon_html;
+            echo do_shortcode( '[spf_form id="' . esc_attr( $form_id ) . '"]' );
+            $GLOBALS['spf_elementor_arrow_icon'] = '';
+            ?>
         </div>
         <?php
     }

@@ -297,7 +297,7 @@
     --spf-arrow-offset: 14px;
 }
 
-/* The select fills the wrapper; arrow is drawn by ::after */
+/* The select fills the wrapper; arrow is drawn by ::after (default) or icon element */
 .spf-select-wrap .spf-select {
     appearance: none;
     background-image: none;
@@ -308,7 +308,7 @@
     width: 100%;
 }
 
-/* ── Default: chevron (V shape) ──────────── */
+/* ── Default fallback arrow (::after chevron) ── */
 .spf-select-wrap::after {
     content: '';
     position: absolute;
@@ -322,32 +322,28 @@
     transform: translateY(-70%) rotate(45deg);
 }
 
-/* ── Triangle style ──────────────────────── */
-.spf-arrow-triangle .spf-select-wrap::after {
-    width: 0;
-    height: 0;
-    border-left: calc(var(--spf-arrow-size, 8px) * 0.6) solid transparent;
-    border-right: calc(var(--spf-arrow-size, 8px) * 0.6) solid transparent;
-    border-top: var(--spf-arrow-size, 8px) solid var(--spf-arrow-color, #64748b);
-    border-bottom: none;
-    transform: translateY(-50%);
-}
-
-/* ── Caret style (thinner chevron) ───────── */
-.spf-arrow-caret .spf-select-wrap::after {
-    width: calc(var(--spf-arrow-size, 8px) * 0.9);
-    height: calc(var(--spf-arrow-size, 8px) * 0.9);
-    border-right: 1.5px solid var(--spf-arrow-color, #64748b);
-    border-bottom: 1.5px solid var(--spf-arrow-color, #64748b);
-    transform: translateY(-70%) rotate(45deg);
-}
-
-/* ── Hidden arrow ────────────────────────── */
-.spf-arrow-none .spf-select-wrap::after {
+/* ── Elementor icon element (replaces ::after when set) ── */
+.spf-select-wrap.spf-has-arrow-icon::after {
     display: none;
 }
-.spf-arrow-none .spf-select-wrap .spf-select {
-    padding-right: 0.85rem;
+.spf-select-arrow-icon {
+    position: absolute;
+    right: var(--spf-arrow-offset, 14px);
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--spf-arrow-color, #64748b);
+    font-size: var(--spf-arrow-size, 14px);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.spf-select-arrow-icon svg {
+    width: var(--spf-arrow-size, 14px);
+    height: var(--spf-arrow-size, 14px);
+    fill: var(--spf-arrow-color, #64748b);
+    display: block;
 }
 
 /* ═══════════════════════════════════════════
