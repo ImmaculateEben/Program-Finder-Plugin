@@ -1132,8 +1132,10 @@ class SPF_Elementor_Widget extends Widget_Base {
                 $arrow_icon_html = ob_get_clean();
             }
             $GLOBALS['spf_elementor_arrow_icon'] = $arrow_icon_html;
+            $GLOBALS['spf_elementor_btn_pos']   = $btn_pos;
             echo do_shortcode( '[spf_form id="' . esc_attr( $form_id ) . '"]' );
             $GLOBALS['spf_elementor_arrow_icon'] = '';
+            $GLOBALS['spf_elementor_btn_pos']    = '';
             ?>
         </div>
         <?php

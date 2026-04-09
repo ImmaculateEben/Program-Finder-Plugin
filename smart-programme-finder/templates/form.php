@@ -50,7 +50,7 @@ if ( ! empty( $s['form_padding'] ) && '0' !== $s['form_padding'] ) { $css .= 'pa
 if ( ! empty( $s['form_border_radius'] ) && '0' !== $s['form_border_radius'] ) { $css .= 'border-radius:' . esc_attr( $s['form_border_radius'] ) . 'px;'; }
 
 $columns  = $s['columns'] ?? '1';
-$btn_pos  = $s['button_position'] ?? 'full';
+$btn_pos  = $GLOBALS['spf_elementor_btn_pos'] ?? ( $s['button_position'] ?? 'full' );
 $btn_text = $s['button_text'] ?? 'Find My Programme';
 $spacing  = $s['field_spacing'] ?? '20';
 

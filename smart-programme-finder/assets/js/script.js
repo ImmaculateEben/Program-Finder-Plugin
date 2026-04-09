@@ -390,8 +390,8 @@
 
             if (cols <= 1) { return; }
 
-            // Pin button to last column
-            $inline.css('grid-column-end', '-1');
+            // Pin button to last column explicitly (grid-column: -2 / -1 = last column)
+            $inline.css({ 'grid-column-start': '-2', 'grid-column-end': '-1' });
 
             var totalItems    = $fields.length + 1; // fields + button
             var onLastRow     = totalItems % cols;
@@ -423,23 +423,6 @@
                 $form.find('.spf-fields-grid')
                     .removeClass('spf-fields-grid--1 spf-fields-grid--2 spf-fields-grid--3 spf-fields-grid--4')
                     .addClass('spf-fields-grid--' + cols);
-            }
-
-            // Button position
-            var btnPos = $wrap.data('btn-position');
-            if (btnPos) {
-                $form.find('.spf-submit-group')
-                    .removeClass('spf-submit-group--left spf-submit-group--center spf-submit-group--right spf-submit-group--full spf-submit-group--inline')
-                    .addClass('spf-submit-group--' + btnPos);
-
-                // Inline: move submit into grid; otherwise move it out
-                var $grid = $form.find('.spf-fields-grid');
-                var $submit = $form.find('.spf-submit-group');
-                if (btnPos === 'inline') {
-                    $grid.append($submit);
-                } else if ($submit.parent().hasClass('spf-fields-grid')) {
-                    $grid.after($submit);
-                }
             }
 
             // Button text

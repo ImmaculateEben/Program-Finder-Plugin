@@ -1570,17 +1570,6 @@ class SPF_Admin {
                                     <h3 class="spf-settings-section-title"><?php esc_html_e( 'Button', 'smart-programme-finder' ); ?></h3>
 
                                     <div class="spf-settings-field">
-                                        <label><?php esc_html_e( 'Button Position', 'smart-programme-finder' ); ?></label>
-                                        <select name="spf_button_position">
-                                            <option value="full" <?php selected( $s['button_position'], 'full' ); ?>><?php esc_html_e( 'Full Width', 'smart-programme-finder' ); ?></option>
-                                            <option value="left" <?php selected( $s['button_position'], 'left' ); ?>><?php esc_html_e( 'Left', 'smart-programme-finder' ); ?></option>
-                                            <option value="center" <?php selected( $s['button_position'], 'center' ); ?>><?php esc_html_e( 'Center', 'smart-programme-finder' ); ?></option>
-                                            <option value="right" <?php selected( $s['button_position'], 'right' ); ?>><?php esc_html_e( 'Right', 'smart-programme-finder' ); ?></option>
-                                            <option value="inline" <?php selected( $s['button_position'], 'inline' ); ?>><?php esc_html_e( 'End of Last Row', 'smart-programme-finder' ); ?></option>
-                                        </select>
-                                    </div>
-
-                                    <div class="spf-settings-field">
                                         <label><?php esc_html_e( 'Button Border Radius (px)', 'smart-programme-finder' ); ?></label>
                                         <input type="number" name="spf_btn_radius" value="<?php echo esc_attr( $s['btn_radius'] ); ?>" min="0" max="50">
                                     </div>
