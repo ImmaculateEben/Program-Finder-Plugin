@@ -60,6 +60,7 @@ class SPF_Admin {
     public const DEFAULT_GENERAL = array(
         'description'            => '',
         'button_processing_text' => 'Finding your best match...',
+        'conf_btn_text'          => 'Try Again',
         'form_css_class'         => '',
         'button_css_class'       => '',
     );
@@ -1517,6 +1518,12 @@ class SPF_Admin {
                                     <div class="spf-settings-field">
                                         <label for="spf_general_button_processing_text"><?php esc_html_e( 'Submit Button Processing Text', 'smart-programme-finder' ); ?></label>
                                         <input type="text" id="spf_general_button_processing_text" name="spf_general_button_processing_text" value="<?php echo esc_attr( $g['button_processing_text'] ); ?>" class="spf-input-full">
+                                    </div>
+
+                                    <div class="spf-settings-field">
+                                        <label for="spf_general_conf_btn_text"><?php esc_html_e( 'Confirmation Button Text', 'smart-programme-finder' ); ?></label>
+                                        <input type="text" id="spf_general_conf_btn_text" name="spf_general_conf_btn_text" value="<?php echo esc_attr( $g['conf_btn_text'] ); ?>" class="spf-input-full">
+                                        <p class="description"><?php esc_html_e( 'Text for the &ldquo;Try Again&rdquo; button shown in the confirmation popup / inline message.', 'smart-programme-finder' ); ?></p>
                                     </div>
 
                                     <h3 class="spf-settings-section-title"><?php esc_html_e( 'Advanced', 'smart-programme-finder' ); ?></h3>

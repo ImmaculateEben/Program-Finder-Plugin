@@ -51,6 +51,7 @@ class SPF_Admin {
         'form_description'   => '',
         'submit_text'        => 'Find My Programme',
         'submit_processing'  => 'Finding your best match...',
+        'conf_btn_text'      => 'Try Again',
         'enable_ajax'        => true,
     );
 
@@ -320,6 +321,7 @@ class SPF_Admin {
                 'form_description'  => isset( $_POST['spf_form_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['spf_form_description'] ) ) : '',
                 'submit_text'       => isset( $_POST['spf_submit_text'] ) ? sanitize_text_field( wp_unslash( $_POST['spf_submit_text'] ) ) : 'Find My Programme',
                 'submit_processing' => isset( $_POST['spf_submit_processing'] ) ? sanitize_text_field( wp_unslash( $_POST['spf_submit_processing'] ) ) : 'Finding your best match...',
+                'conf_btn_text'     => isset( $_POST['spf_conf_btn_text'] ) ? sanitize_text_field( wp_unslash( $_POST['spf_conf_btn_text'] ) ) : 'Try Again',
                 'enable_ajax'       => ! empty( $_POST['spf_enable_ajax'] ),
             );
             $form['general'] = $general;
@@ -919,6 +921,12 @@ class SPF_Admin {
                                 <div class="spf-option-group">
                                     <label for="spf_submit_processing"><?php esc_html_e( 'Submit Button Processing Text', 'smart-programme-finder' ); ?></label>
                                     <input type="text" id="spf_submit_processing" name="spf_submit_processing" value="<?php echo esc_attr( $general['submit_processing'] ); ?>" class="spf-input-full" />
+                                </div>
+
+                                <div class="spf-option-group">
+                                    <label for="spf_conf_btn_text"><?php esc_html_e( 'Confirmation Button Text', 'smart-programme-finder' ); ?></label>
+                                    <input type="text" id="spf_conf_btn_text" name="spf_conf_btn_text" value="<?php echo esc_attr( $general['conf_btn_text'] ); ?>" class="spf-input-full" />
+                                    <p class="description"><?php esc_html_e( 'Text for the &ldquo;Try Again&rdquo; button shown in the confirmation popup / inline message.', 'smart-programme-finder' ); ?></p>
                                 </div>
 
                                 <div class="spf-option-group spf-option-group--checkbox">

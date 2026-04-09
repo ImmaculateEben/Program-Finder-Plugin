@@ -63,7 +63,8 @@ foreach ( $spf_forms_all as $spf_f ) {
         break;
     }
 }
-$processing_text = $spf_general['button_processing_text'] ?? 'Finding your best match...';
+$processing_text = $spf_general['button_processing_text'] ?? ( $spf_general['submit_processing'] ?? 'Finding your best match...' );
+$conf_btn_text   = $conf_btn_text ?? ( $spf_general['conf_btn_text'] ?? 'Try Again' );
 
 
 ?>
@@ -267,7 +268,7 @@ $processing_text = $spf_general['button_processing_text'] ?? 'Finding your best 
         </div>
         <div class="spf-inline-actions">
             <button type="button" class="spf-inline-btn spf-inline-btn--reset">
-                <?php esc_html_e( 'Try Again', 'smart-programme-finder' ); ?>
+                <?php echo esc_html( $conf_btn_text ); ?>
             </button>
         </div>
     </div>

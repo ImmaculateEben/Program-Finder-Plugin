@@ -37,13 +37,29 @@ class SPF_Shortcode {
         // Load per-form appearance settings.
         $form_settings = SPF_Admin::get_form_settings( $form_id );
 
+        // Resolve general settings for this form.
+        $spf_forms_raw  = get_option( 'spf_forms', array() );
+        $spf_form_entry = array();
+        foreach ( $spf_forms_raw as $spf_f ) {
+            if ( (int) ( $spf_f['id'] ?? 0 ) === $form_id ) {
+                $spf_form_entry = $spf_f;
+                break;
+            }
+        }
+        $spf_general   = $spf_form_entry['general'] ?? array();
+        $conf_btn_text = ! empty( $spf_general['conf_btn_text'] ) ? $spf_general['conf_btn_text'] : 'Try Again';
+
         // Capture template output
         ob_start();
         $this->load_template( 'form', array(
             'form_id'       => $form_id,
             'form_settings' => $form_settings,
+            'conf_btn_text' => $conf_btn_text,
         ) );
-        $this->load_template( 'popup', array( 'form_id' => $form_id ) );
+        $this->load_template( 'popup', array(
+            'form_id'       => $form_id,
+            'conf_btn_text' => $conf_btn_text,
+        ) );
         return ob_get_clean();
     }
 

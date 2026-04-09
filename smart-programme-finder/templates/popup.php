@@ -3,7 +3,8 @@
  * Result popup / modal template.
  *
  * Available variables:
- *   $form_id — integer form identifier.
+ *   $form_id       — integer form identifier.
+ *   $conf_btn_text — text for the reset/try-again button.
  *
  * @package SmartProgrammeFinder
  */
@@ -11,6 +12,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
+$conf_btn_text = $conf_btn_text ?? __( 'Try Again', 'smart-programme-finder' );
 ?>
 
 <div class="spf-modal-overlay" id="spf-modal-<?php echo esc_attr( $form_id ); ?>" role="dialog" aria-modal="true" aria-labelledby="spf-modal-title-<?php echo esc_attr( $form_id ); ?>" hidden>
@@ -34,7 +36,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
         <div class="spf-modal-actions">
             <button type="button" class="spf-modal-btn spf-modal-btn--reset">
-                <?php esc_html_e( 'Try Again', 'smart-programme-finder' ); ?>
+                <?php echo esc_html( $conf_btn_text ); ?>
             </button>
         </div>
     </div>
