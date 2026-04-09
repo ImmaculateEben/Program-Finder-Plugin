@@ -801,6 +801,54 @@
 }
 
 /* Conditional logic */
+.spf-option-group {
+    margin-bottom: 14px;
+}
+
+.spf-option-group--checkbox label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.spf-option-group--checkbox input[type="checkbox"] {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.spf-conf-conditions {
+    padding: 12px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    margin-bottom: 14px;
+}
+
+.spf-conditions-label {
+    font-size: 13px;
+    color: #475569;
+    margin: 0 0 10px;
+    font-weight: 500;
+}
+
+.spf-condition-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+
+.spf-condition-row select {
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
 .spf-conf-conditions-wrap {
     padding: 12px;
     background: #f8fafc;

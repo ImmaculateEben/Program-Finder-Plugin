@@ -685,6 +685,17 @@
      * ----------------------------------------- */
     function initConfirmationLogic() {
 
+        /* Toggle conditional logic visibility (new admin) */
+        $(document).on('change', '.spf-conf-logic-toggle', function () {
+            var $wrap = $(this).closest('.spf-conf-body, .spf-conf-card-body').find('.spf-conf-conditions');
+            if ($(this).is(':checked')) {
+                $wrap.slideDown(200);
+            } else {
+                $wrap.slideUp(200);
+            }
+        });
+
+        /* Legacy toggle class */
         $(document).on('change', '.spf-conf-cond-toggle', function () {
             var $wrap = $(this).closest('.spf-conf-card-body').find('.spf-conf-conditions-wrap');
             if ($(this).is(':checked')) {
@@ -698,33 +709,105 @@
             $('#spf-add-conf-form').slideToggle(200);
         });
 
+        /* Dynamic value dropdown: when field changes, populate choices */
+        $(document).on('change', '.spf-cond-field', function () {
+            var fieldKey = $(this).val();
+            var $valueSelect = $(this).closest('.spf-condition-row, .spf-conf-condition-row').find('.spf-cond-value');
+            populateCondValueSelect($valueSelect, fieldKey, '');
+        });
+
+        /* "And" button — clone row and reset */
         $(document).on('click', '.spf-cond-add', function () {
-            var $rows = $(this).closest('.spf-conf-condition-rows');
-            var $row  = $(this).closest('.spf-conf-condition-row');
+            var $container = $(this).closest('.spf-conditions-list, .spf-conf-condition-rows');
+            var $row  = $(this).closest('.spf-condition-row, .spf-conf-condition-row');
             var $new  = $row.clone();
-            var idx   = $rows.find('.spf-conf-condition-row').length;
+            var idx   = $container.find('.spf-condition-row, .spf-conf-condition-row').length;
 
             $new.find('[name]').each(function () {
                 var name = $(this).attr('name');
                 $(this).attr('name', name.replace(/\[\d+\]/, '[' + idx + ']'));
             });
             $new.find('.spf-cond-field').val('');
-            $new.find('.spf-cond-value').val('');
+            $new.find('.spf-cond-op').val('is');
+            /* Reset the value select to just the placeholder */
+            var $valSelect = $new.find('.spf-cond-value');
+            $valSelect.html('<option value="">\u2014 Select Choice \u2014</option>');
             $row.after($new);
-            reindexConditions($rows);
+            reindexConditions($container);
         });
 
+        /* Remove condition row */
         $(document).on('click', '.spf-cond-remove', function () {
-            var $rows = $(this).closest('.spf-conf-condition-rows');
-            if ($rows.find('.spf-conf-condition-row').length > 1) {
-                $(this).closest('.spf-conf-condition-row').remove();
-                reindexConditions($rows);
+            var $container = $(this).closest('.spf-conditions-list, .spf-conf-condition-rows');
+            if ($container.find('.spf-condition-row, .spf-conf-condition-row').length > 1) {
+                $(this).closest('.spf-condition-row, .spf-conf-condition-row').remove();
+                reindexConditions($container);
             }
+        });
+
+        /* "Add Condition" button */
+        $(document).on('click', '.spf-add-condition-btn', function () {
+            var $list = $(this).siblings('.spf-conditions-list');
+            var $block = $(this).closest('.spf-confirmation-block');
+            var ci = $block.data('index');
+            var idx = $list.find('.spf-condition-row').length;
+            var fields = getFieldsData();
+
+            var fieldOpts = '<option value="">\u2014 Field \u2014</option>';
+            for (var i = 0; i < fields.length; i++) {
+                fieldOpts += '<option value="' + escAttr(fields[i].field_key) + '">' + escAttr(fields[i].label) + '</option>';
+            }
+
+            var rowHtml = '<div class="spf-condition-row">' +
+                '<select name="spf_confirmations[' + ci + '][conditions][' + idx + '][field]" class="spf-cond-field">' + fieldOpts + '</select>' +
+                '<select name="spf_confirmations[' + ci + '][conditions][' + idx + '][operator]" class="spf-cond-op">' +
+                '<option value="is">is</option><option value="is_not">is not</option></select>' +
+                '<select name="spf_confirmations[' + ci + '][conditions][' + idx + '][value]" class="spf-cond-value">' +
+                '<option value="">\u2014 Select Choice \u2014</option></select>' +
+                '<button type="button" class="spf-cond-add button-small" title="And">And</button>' +
+                '<button type="button" class="spf-cond-remove" title="Remove"><span class="dashicons dashicons-trash"></span></button>' +
+                '</div>';
+            $list.append(rowHtml);
         });
     }
 
-    function reindexConditions($rows) {
-        $rows.find('.spf-conf-condition-row').each(function (i) {
+    /**
+     * Populate a condition value <select> with choices from the given field.
+     */
+    function populateCondValueSelect($select, fieldKey, selectedValue) {
+        var html = '<option value="">\u2014 Select Choice \u2014</option>';
+        if (fieldKey) {
+            var fields = getFieldsData();
+            for (var i = 0; i < fields.length; i++) {
+                if (fields[i].field_key === fieldKey) {
+                    var options = fields[i].options || '';
+                    if (typeof options === 'string' && options.length > 0) {
+                        var choices = options.split(',');
+                        for (var j = 0; j < choices.length; j++) {
+                            var c = choices[j].trim();
+                            if (c) {
+                                var sel = (c === selectedValue) ? ' selected' : '';
+                                html += '<option value="' + escAttr(c) + '"' + sel + '>' + escAttr(c) + '</option>';
+                            }
+                        }
+                    } else if (Array.isArray(options)) {
+                        for (var k = 0; k < options.length; k++) {
+                            var o = String(options[k]).trim();
+                            if (o) {
+                                var s = (o === selectedValue) ? ' selected' : '';
+                                html += '<option value="' + escAttr(o) + '"' + s + '>' + escAttr(o) + '</option>';
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        $select.html(html);
+    }
+
+    function reindexConditions($container) {
+        $container.find('.spf-condition-row, .spf-conf-condition-row').each(function (i) {
             $(this).find('[name]').each(function () {
                 var name = $(this).attr('name');
                 $(this).attr('name', name.replace(/\[\d+\]/, '[' + i + ']'));
@@ -997,7 +1080,7 @@
             html += '<div class="spf-field-condition-row">' +
                 '<select class="spf-fcond-field">' + buildFieldSelectOptions(currentFieldId, '') + '</select>' +
                 '<select class="spf-fcond-op">' + buildOperatorOptions('is') + '</select>' +
-                '<input type="text" class="spf-fcond-value" value="" placeholder="Value">' +
+                '<select class="spf-fcond-value"><option value="">\u2014 Select Choice \u2014</option></select>' +
                 '<button type="button" class="button spf-fcond-remove" title="Remove">&times;</button>' +
                 '</div>';
         } else {
@@ -1007,9 +1090,38 @@
                 html += '<div class="spf-field-condition-row">' +
                     '<select class="spf-fcond-field">' + buildFieldSelectOptions(currentFieldId, c.field_key) + '</select>' +
                     '<select class="spf-fcond-op">' + buildOperatorOptions(c.operator) + '</select>' +
-                    '<input type="text" class="spf-fcond-value" value="' + escAttr(c.value || '') + '" placeholder="Value"' + (hideValue ? ' style="display:none"' : '') + '>' +
+                    '<select class="spf-fcond-value"' + (hideValue ? ' style="display:none"' : '') + '>' + buildCondValueOptionsHtml(c.field_key, c.value || '') + '</select>' +
                     '<button type="button" class="button spf-fcond-remove" title="Remove">&times;</button>' +
                     '</div>';
+            }
+        }
+        return html;
+    }
+
+    /**
+     * Build <option> HTML for a field's choices (used in condition value dropdowns).
+     */
+    function buildCondValueOptionsHtml(fieldKey, selectedValue) {
+        var html = '<option value="">\u2014 Select Choice \u2014</option>';
+        if (!fieldKey) return html;
+        var fields = getFieldsData();
+        for (var i = 0; i < fields.length; i++) {
+            if (fields[i].field_key === fieldKey) {
+                var options = fields[i].options || '';
+                var choices = [];
+                if (typeof options === 'string' && options.length > 0) {
+                    choices = options.split(',');
+                } else if (Array.isArray(options)) {
+                    choices = options;
+                }
+                for (var j = 0; j < choices.length; j++) {
+                    var c = String(choices[j]).trim();
+                    if (c) {
+                        var sel = (c === selectedValue) ? ' selected' : '';
+                        html += '<option value="' + escAttr(c) + '"' + sel + '>' + escAttr(c) + '</option>';
+                    }
+                }
+                break;
             }
         }
         return html;
@@ -1052,7 +1164,7 @@
             var rowHtml = '<div class="spf-field-condition-row">' +
                 '<select class="spf-fcond-field">' + buildFieldSelectOptions(fieldId, '') + '</select>' +
                 '<select class="spf-fcond-op">' + buildOperatorOptions('is') + '</select>' +
-                '<input type="text" class="spf-fcond-value" value="" placeholder="Value">' +
+                '<select class="spf-fcond-value"><option value="">\u2014 Select Choice \u2014</option></select>' +
                 '<button type="button" class="button spf-fcond-remove" title="Remove">&times;</button>' +
                 '</div>';
             $rows.append(rowHtml);
@@ -1074,6 +1186,13 @@
             } else {
                 $val.show();
             }
+        });
+
+        /* Dynamic value dropdown: when field changes, populate choices (Smart Logic) */
+        $(document).on('change', '.spf-fcond-field', function () {
+            var fieldKey = $(this).val();
+            var $valueSelect = $(this).closest('.spf-field-condition-row').find('.spf-fcond-value');
+            $valueSelect.html(buildCondValueOptionsHtml(fieldKey, ''));
         });
     }
 

@@ -997,7 +997,27 @@ class SPF_Admin {
                                                             <option value="is" <?php selected( $cond['operator'] ?? 'is', 'is' ); ?>><?php esc_html_e( 'is', 'smart-programme-finder' ); ?></option>
                                                             <option value="is_not" <?php selected( $cond['operator'] ?? '', 'is_not' ); ?>><?php esc_html_e( 'is not', 'smart-programme-finder' ); ?></option>
                                                         </select>
-                                                        <input type="text" name="spf_confirmations[<?php echo esc_attr( $ci ); ?>][conditions][<?php echo esc_attr( $cond_i ); ?>][value]" value="<?php echo esc_attr( $cond['value'] ?? '' ); ?>" class="spf-cond-value" placeholder="<?php esc_attr_e( 'Value', 'smart-programme-finder' ); ?>" />
+                                                        <?php
+                                                        // Find the selected field's choices for the value dropdown
+                                                        $cond_field_key = $cond['field'] ?? '';
+                                                        $cond_field_options = array();
+                                                        if ( $cond_field_key ) {
+                                                            foreach ( $fields as $cf ) {
+                                                                if ( $cf['field_key'] === $cond_field_key && ! empty( $cf['options'] ) ) {
+                                                                    $cond_field_options = is_array( $cf['options'] )
+                                                                        ? $cf['options']
+                                                                        : array_map( 'trim', explode( ',', $cf['options'] ) );
+                                                                    break;
+                                                                }
+                                                            }
+                                                        }
+                                                        ?>
+                                                        <select name="spf_confirmations[<?php echo esc_attr( $ci ); ?>][conditions][<?php echo esc_attr( $cond_i ); ?>][value]" class="spf-cond-value">
+                                                            <option value=""><?php esc_html_e( '— Select Choice —', 'smart-programme-finder' ); ?></option>
+                                                            <?php foreach ( $cond_field_options as $opt ) : ?>
+                                                            <option value="<?php echo esc_attr( $opt ); ?>" <?php selected( $cond['value'] ?? '', $opt ); ?>><?php echo esc_html( $opt ); ?></option>
+                                                            <?php endforeach; ?>
+                                                        </select>
                                                         <button type="button" class="spf-cond-add button-small" title="<?php esc_attr_e( 'And', 'smart-programme-finder' ); ?>"><?php esc_html_e( 'And', 'smart-programme-finder' ); ?></button>
                                                         <button type="button" class="spf-cond-remove" title="<?php esc_attr_e( 'Remove', 'smart-programme-finder' ); ?>"><span class="dashicons dashicons-trash"></span></button>
                                                     </div>

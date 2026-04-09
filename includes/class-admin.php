@@ -1850,7 +1850,27 @@ class SPF_Admin {
                                 <option value="is_not" <?php selected( $cond['operator'] ?? 'is', 'is_not' ); ?>><?php esc_html_e( 'is not', 'smart-programme-finder' ); ?></option>
                             </select>
 
-                            <input type="text" name="spf_conf_conditions[<?php echo esc_attr( $ci ); ?>][value]" value="<?php echo esc_attr( $cond['value'] ?? '' ); ?>" class="spf-cond-value" placeholder="<?php esc_attr_e( 'Value', 'smart-programme-finder' ); ?>">
+                            <?php
+                            // Find the selected field's choices for the value dropdown
+                            $cond_fk = $cond['field_key'] ?? '';
+                            $cond_opts = array();
+                            if ( $cond_fk ) {
+                                foreach ( $fields as $cf ) {
+                                    if ( $cf['field_key'] === $cond_fk && ! empty( $cf['options'] ) ) {
+                                        $cond_opts = is_array( $cf['options'] )
+                                            ? $cf['options']
+                                            : array_map( 'trim', explode( ',', $cf['options'] ) );
+                                        break;
+                                    }
+                                }
+                            }
+                            ?>
+                            <select name="spf_conf_conditions[<?php echo esc_attr( $ci ); ?>][value]" class="spf-cond-value">
+                                <option value=""><?php esc_html_e( '— Select Choice —', 'smart-programme-finder' ); ?></option>
+                                <?php foreach ( $cond_opts as $opt ) : ?>
+                                <option value="<?php echo esc_attr( $opt ); ?>" <?php selected( $cond['value'] ?? '', $opt ); ?>><?php echo esc_html( $opt ); ?></option>
+                                <?php endforeach; ?>
+                            </select>
 
                             <button type="button" class="spf-cond-add button button-small"><?php esc_html_e( 'And', 'smart-programme-finder' ); ?></button>
                             <button type="button" class="spf-cond-remove button button-small spf-btn-danger" title="<?php esc_attr_e( 'Remove', 'smart-programme-finder' ); ?>">
