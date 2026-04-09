@@ -816,6 +816,114 @@ class SPF_Elementor_Widget extends Widget_Base {
             ),
         ) );
 
+        /* Close Icon */
+        $this->add_control( 'heading_close_icon', array(
+            'label'     => __( 'Close Icon', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ) );
+
+        $this->start_controls_tabs( 'tabs_close_icon' );
+
+        $this->start_controls_tab( 'tab_close_icon_normal', array(
+            'label' => __( 'Normal', 'smart-programme-finder' ),
+        ) );
+
+        $this->add_control( 'close_icon_color', array(
+            'label'     => __( 'Icon Color', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::COLOR,
+            'global'    => array( 'active' => true ),
+            'selectors' => array(
+                '{{WRAPPER}} .spf-modal-close' => 'color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->add_control( 'close_icon_bg', array(
+            'label'     => __( 'Background', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => array(
+                '{{WRAPPER}} .spf-modal-close' => 'background-color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab( 'tab_close_icon_hover', array(
+            'label' => __( 'Hover', 'smart-programme-finder' ),
+        ) );
+
+        $this->add_control( 'close_icon_color_hover', array(
+            'label'     => __( 'Icon Color', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::COLOR,
+            'global'    => array( 'active' => true ),
+            'selectors' => array(
+                '{{WRAPPER}} .spf-modal-close:hover' => 'color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->add_control( 'close_icon_bg_hover', array(
+            'label'     => __( 'Background', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => array(
+                '{{WRAPPER}} .spf-modal-close:hover' => 'background-color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
+
+        $this->add_control( 'close_icon_size', array(
+            'label'      => __( 'Icon Size', 'smart-programme-finder' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => array( 'px', 'em' ),
+            'range'      => array( 'px' => array( 'min' => 10, 'max' => 48, 'step' => 1 ) ),
+            'selectors'  => array(
+                '{{WRAPPER}} .spf-modal-close' => 'font-size: {{SIZE}}{{UNIT}};',
+            ),
+            'separator' => 'before',
+        ) );
+
+        $this->add_control( 'close_icon_border_radius', array(
+            'label'      => __( 'Border Radius', 'smart-programme-finder' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => array( 'px', '%' ),
+            'range'      => array( 'px' => array( 'min' => 0, 'max' => 30 ), '%' => array( 'min' => 0, 'max' => 50 ) ),
+            'selectors'  => array(
+                '{{WRAPPER}} .spf-modal-close' => 'border-radius: {{SIZE}}{{UNIT}};',
+            ),
+        ) );
+
+        $this->add_responsive_control( 'close_icon_padding', array(
+            'label'      => __( 'Padding', 'smart-programme-finder' ),
+            'type'       => Controls_Manager::DIMENSIONS,
+            'size_units' => array( 'px', 'em' ),
+            'selectors'  => array(
+                '{{WRAPPER}} .spf-modal-close' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}};',
+            ),
+        ) );
+
+        $this->add_responsive_control( 'close_icon_position_top', array(
+            'label'      => __( 'Position — Top', 'smart-programme-finder' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => array( 'px', 'rem' ),
+            'range'      => array( 'px' => array( 'min' => 0, 'max' => 60 ) ),
+            'selectors'  => array(
+                '{{WRAPPER}} .spf-modal-close' => 'top: {{SIZE}}{{UNIT}};',
+            ),
+            'separator' => 'before',
+        ) );
+
+        $this->add_responsive_control( 'close_icon_position_right', array(
+            'label'      => __( 'Position — Right', 'smart-programme-finder' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => array( 'px', 'rem' ),
+            'range'      => array( 'px' => array( 'min' => 0, 'max' => 60 ) ),
+            'selectors'  => array(
+                '{{WRAPPER}} .spf-modal-close' => 'right: {{SIZE}}{{UNIT}};',
+            ),
+        ) );
+
         /* Popup Button — Normal / Hover Tabs */
         $this->add_control( 'heading_popup_btn', array(
             'label'     => __( 'Button', 'smart-programme-finder' ),
