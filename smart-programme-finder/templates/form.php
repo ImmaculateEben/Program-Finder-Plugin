@@ -110,7 +110,10 @@ $processing_text = $spf_general['button_processing_text'] ?? 'Finding your best 
                 /* ── Dropdown (Select) ──────────── */
                 case 'select':
                     $spf_arrow_icon = $GLOBALS['spf_elementor_arrow_icon'] ?? '';
-                    $spf_wrap_class = $spf_arrow_icon ? 'spf-select-wrap spf-has-arrow-icon' : 'spf-select-wrap';
+                    $spf_arrow_hide = $GLOBALS['spf_elementor_arrow_hide'] ?? false;
+                    $spf_wrap_class = 'spf-select-wrap';
+                    if ( $spf_arrow_icon )  { $spf_wrap_class .= ' spf-has-arrow-icon'; }
+                    elseif ( $spf_arrow_hide ) { $spf_wrap_class .= ' spf-no-arrow'; }
                     ?>
                     <div class="<?php echo esc_attr( $spf_wrap_class ); ?>">
                     <select
@@ -124,7 +127,7 @@ $processing_text = $spf_general['button_processing_text'] ?? 'Finding your best 
                         <option value="<?php echo esc_attr( $option ); ?>"><?php echo esc_html( $option ); ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <?php if ( $spf_arrow_icon ) echo $spf_arrow_icon; // Rendered by Elementor Icons_Manager, already safe ?>
+                    <?php if ( $spf_arrow_icon ) echo $spf_arrow_icon; // phpcs:ignore WordPress.Security.EscapeOutput -- sanitised by Icons_Manager ?>
                     </div>
                 <?php break;
 

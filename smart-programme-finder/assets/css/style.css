@@ -322,9 +322,16 @@
     transform: translateY(-70%) rotate(45deg);
 }
 
-/* ── Elementor icon element (replaces ::after when set) ── */
+/* ── Elementor icon element wraps <i> or <svg>; replaces ::after ── */
 .spf-select-wrap.spf-has-arrow-icon::after {
     display: none;
+}
+/* ── No arrow at all (arrow_show = No in Elementor) ── */
+.spf-select-wrap.spf-no-arrow::after {
+    display: none;
+}
+.spf-select-wrap.spf-no-arrow .spf-select {
+    padding-right: 0.85rem;
 }
 .spf-select-arrow-icon {
     position: absolute;

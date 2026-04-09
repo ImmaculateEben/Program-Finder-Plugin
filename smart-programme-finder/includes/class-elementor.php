@@ -1232,17 +1232,29 @@ class SPF_Elementor_Widget extends Widget_Base {
                 <p class="spf-form-description"><?php echo esc_html( $form_desc ); ?></p>
             <?php endif; ?>
             <?php
-            /* Pass arrow icon to the form template via global */
+            /* Pass arrow icon to the form template via global.
+             * Wrap in <span class="spf-select-arrow-icon"> so our CSS class
+             * is always present regardless of how Icons_Manager renders the tag.
+             */
             $arrow_icon_html = '';
-            if ( 'yes' === ( $s['arrow_show'] ?? 'yes' ) && ! empty( $s['arrow_icon']['value'] ) ) {
-                ob_start();
-                \Elementor\Icons_Manager::render_icon( $s['arrow_icon'], array( 'aria-hidden' => 'true', 'class' => 'spf-select-arrow-icon' ) );
-                $arrow_icon_html = ob_get_clean();
+            $arrow_hide      = false;
+            if ( 'yes' === ( $s['arrow_show'] ?? 'yes' ) ) {
+                if ( ! empty( $s['arrow_icon']['value'] ) ) {
+                    ob_start();
+                    \Elementor\Icons_Manager::render_icon( $s['arrow_icon'], array( 'aria-hidden' => 'true' ) );
+                    $inner = ob_get_clean();
+                    $arrow_icon_html = '<span class="spf-select-arrow-icon" aria-hidden="true">' . $inner . '</span>';
+                }
+                // else: no icon selected → fall through to default CSS ::after chevron
+            } else {
+                $arrow_hide = true; // arrow_show = 'no' → suppress ::after too
             }
             $GLOBALS['spf_elementor_arrow_icon'] = $arrow_icon_html;
-            $GLOBALS['spf_elementor_btn_pos']   = $btn_pos;
+            $GLOBALS['spf_elementor_arrow_hide'] = $arrow_hide;
+            $GLOBALS['spf_elementor_btn_pos']    = $btn_pos;
             echo do_shortcode( '[spf_form id="' . esc_attr( $form_id ) . '"]' );
             $GLOBALS['spf_elementor_arrow_icon'] = '';
+            $GLOBALS['spf_elementor_arrow_hide'] = false;
             $GLOBALS['spf_elementor_btn_pos']    = '';
             ?>
         </div>
