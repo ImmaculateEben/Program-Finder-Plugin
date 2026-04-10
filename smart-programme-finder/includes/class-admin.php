@@ -1452,7 +1452,7 @@ class SPF_Admin {
                     </button>
                     <button type="submit" form="spf-settings-form" class="spf-topbar-btn spf-topbar-btn--save">
                         <span class="dashicons dashicons-saved"></span>
-                        <?php esc_html_e( 'Save', 'smart-programme-finder' ); ?>
+                        <span class="spf-btn-label"><?php esc_html_e( 'Save', 'smart-programme-finder' ); ?></span>
                     </button>
                     <a href="<?php echo esc_url( admin_url( 'admin.php?page=spf-forms' ) ); ?>" class="spf-topbar-btn spf-topbar-btn--close" title="<?php esc_attr_e( 'Close', 'smart-programme-finder' ); ?>">&times;</a>
                 </div>

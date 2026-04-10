@@ -118,13 +118,11 @@
                         $(window).off('beforeunload');
 
                         /* Brief "Saved!" text feedback */
-                        var $label = $btn.contents().filter(function () {
-                            return this.nodeType === 3; /* text node */
-                        });
+                        var $label = $btn.find('.spf-btn-label');
                         var origText = $label.text().trim();
-                        $label[0].nodeValue = ' Saved!';
+                        $label.text('Saved!');
                         setTimeout(function () {
-                            $label[0].nodeValue = ' ' + origText;
+                            $label.text(origText);
                         }, 1500);
                     }
                 }).fail(function () {
