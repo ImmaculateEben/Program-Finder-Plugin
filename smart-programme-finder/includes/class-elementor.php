@@ -662,6 +662,80 @@ class SPF_Elementor_Widget extends Widget_Base {
             'selector' => '{{WRAPPER}} .spf-submit-btn',
         ) );
 
+        /* -- Loading State ------------------- */
+        $this->add_control( 'heading_btn_loading', array(
+            'label'     => __( 'Loading State', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::HEADING,
+            'separator' => 'before',
+        ) );
+
+        $this->start_controls_tabs( 'tabs_btn_loading' );
+
+        $this->start_controls_tab( 'tab_btn_loading_bg', array(
+            'label' => __( 'Button', 'smart-programme-finder' ),
+        ) );
+
+        $this->add_control( 'btn_loading_bg', array(
+            'label'     => __( 'Background Color', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => array(
+                '{{WRAPPER}} .spf-submit-btn.spf-loading' => 'background-color: {{VALUE}} !important;',
+            ),
+        ) );
+
+        $this->add_control( 'btn_loading_color', array(
+            'label'     => __( 'Text Color', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => array(
+                '{{WRAPPER}} .spf-submit-btn.spf-loading .spf-btn-text' => 'color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->add_control( 'btn_loading_opacity', array(
+            'label'     => __( 'Opacity', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::SLIDER,
+            'range'     => array( 'px' => array( 'min' => 0, 'max' => 1, 'step' => 0.05 ) ),
+            'selectors' => array(
+                '{{WRAPPER}} .spf-submit-btn.spf-loading' => 'opacity: {{SIZE}} !important;',
+            ),
+        ) );
+
+        $this->end_controls_tab();
+
+        $this->start_controls_tab( 'tab_btn_loading_spinner', array(
+            'label' => __( 'Spinner', 'smart-programme-finder' ),
+        ) );
+
+        $this->add_control( 'btn_spinner_color', array(
+            'label'     => __( 'Spinner Color', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => array(
+                '{{WRAPPER}} .spf-submit-btn.spf-loading .spf-btn-loader' => 'border-top-color: {{VALUE}}; border-right-color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->add_control( 'btn_spinner_track_color', array(
+            'label'     => __( 'Spinner Track Color', 'smart-programme-finder' ),
+            'type'      => Controls_Manager::COLOR,
+            'selectors' => array(
+                '{{WRAPPER}} .spf-submit-btn.spf-loading .spf-btn-loader' => 'border-bottom-color: {{VALUE}}; border-left-color: {{VALUE}};',
+            ),
+        ) );
+
+        $this->add_responsive_control( 'btn_spinner_size', array(
+            'label'      => __( 'Spinner Size', 'smart-programme-finder' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => array( 'px' ),
+            'range'      => array( 'px' => array( 'min' => 10, 'max' => 40, 'step' => 1 ) ),
+            'selectors'  => array(
+                '{{WRAPPER}} .spf-submit-btn.spf-loading .spf-btn-loader' => 'width: {{SIZE}}{{UNIT}}; height: {{SIZE}}{{UNIT}};',
+            ),
+        ) );
+
+        $this->end_controls_tab();
+
+        $this->end_controls_tabs();
+
         $this->end_controls_section();
 
         /* -- Container Styles ----------------- */
