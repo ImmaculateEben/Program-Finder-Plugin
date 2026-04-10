@@ -565,9 +565,32 @@ class SPF_Elementor_Widget extends Widget_Base {
         $this->add_responsive_control( 'btn_padding', array(
             'label'      => __( 'Padding', 'smart-programme-finder' ),
             'type'       => Controls_Manager::DIMENSIONS,
-            'size_units' => array( 'px', 'em' ),
+            'size_units' => array( 'px', 'em', 'rem', '%' ),
             'selectors'  => array(
-                '{{WRAPPER}} .spf-submit-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+                '{{WRAPPER}} .spf-form-wrapper .spf-submit-btn' => 'padding: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+            ),
+        ) );
+
+        $this->add_responsive_control( 'btn_text_align', array(
+            'label'   => __( 'Text Alignment', 'smart-programme-finder' ),
+            'type'    => Controls_Manager::CHOOSE,
+            'options' => array(
+                'flex-start' => array(
+                    'title' => __( 'Left', 'smart-programme-finder' ),
+                    'icon'  => 'eicon-text-align-left',
+                ),
+                'center'     => array(
+                    'title' => __( 'Center', 'smart-programme-finder' ),
+                    'icon'  => 'eicon-text-align-center',
+                ),
+                'flex-end'   => array(
+                    'title' => __( 'Right', 'smart-programme-finder' ),
+                    'icon'  => 'eicon-text-align-right',
+                ),
+            ),
+            'default'   => 'center',
+            'selectors' => array(
+                '{{WRAPPER}} .spf-form-wrapper .spf-submit-btn' => 'justify-content: {{VALUE}};',
             ),
         ) );
 
@@ -576,7 +599,7 @@ class SPF_Elementor_Widget extends Widget_Base {
             'type'       => Controls_Manager::DIMENSIONS,
             'size_units' => array( 'px', 'em' ),
             'selectors'  => array(
-                '{{WRAPPER}} .spf-submit-group' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
+                '{{WRAPPER}} .spf-form-wrapper .spf-submit-group' => 'margin: {{TOP}}{{UNIT}} {{RIGHT}}{{UNIT}} {{BOTTOM}}{{UNIT}} {{LEFT}}{{UNIT}} !important;',
             ),
         ) );
 
