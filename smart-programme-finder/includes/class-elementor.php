@@ -1127,6 +1127,17 @@ class SPF_Elementor_Widget extends Widget_Base {
             'content_classes' => 'elementor-descriptor',
         ) );
 
+        $this->add_control( 'inline_preview', array(
+            'label'        => __( 'Preview Inline Confirmation in Editor', 'smart-programme-finder' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Show', 'smart-programme-finder' ),
+            'label_off'    => __( 'Hide', 'smart-programme-finder' ),
+            'return_value' => 'yes',
+            'default'      => '',
+            'prefix_class' => 'spf-inline-preview-',
+            'separator'    => 'after',
+        ) );
+
         $this->add_control( 'inline_bg', array(
             'label'     => __( 'Background', 'smart-programme-finder' ),
             'type'      => Controls_Manager::COLOR,

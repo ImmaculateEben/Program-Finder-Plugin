@@ -602,7 +602,7 @@
     visibility: visible;
 }
 
-/* Elementor editor preview — force modal visible when "Preview Popup in Editor" is on */
+/* Elementor editor preview — popup only */
 .spf-popup-preview-yes .spf-modal-overlay {
     display: flex !important;
     opacity: 1 !important;
@@ -618,8 +618,8 @@
     transform: none !important;
 }
 
-/* Also reveal the inline confirmation in editor preview */
-.spf-popup-preview-yes .spf-confirmation-inline {
+/* Elementor editor preview — inline confirmation only */
+.spf-inline-preview-yes .spf-confirmation-inline {
     display: block !important;
 }
 
