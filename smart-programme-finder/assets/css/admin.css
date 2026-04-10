@@ -755,6 +755,40 @@
     resize: vertical;
 }
 
+/* WPForms-style Conditional Logic section */
+.spf-conf-logic-section {
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 14px;
+}
+
+.spf-conf-logic-toggle-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #f8fafc;
+    cursor: pointer;
+    user-select: none;
+}
+
+.spf-conf-logic-section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    letter-spacing: 0.01em;
+}
+
+.spf-conf-logic-section .spf-conf-conditions-wrap {
+    border: none;
+    border-top: 1px solid #d1d5db;
+    border-radius: 0;
+    margin-bottom: 0;
+    background: #fff;
+    padding: 14px 16px;
+}
+
 /* Toggle switch */
 .spf-conf-field--toggle {
     padding: 16px 0;
@@ -763,11 +797,12 @@
 .spf-toggle-label {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     font-weight: 500 !important;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     position: relative;
+    color: #475569;
 }
 
 .spf-toggle-switch {

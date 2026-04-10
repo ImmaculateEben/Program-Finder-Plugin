@@ -1885,15 +1885,17 @@ class SPF_Admin {
                     ?>
                 </div>
 
-                <div class="spf-conf-field spf-conf-field--toggle">
-                    <label class="spf-toggle-label">
-                        <input type="checkbox" name="spf_conf_conditional" value="1" class="spf-conf-cond-toggle" <?php checked( $cond_on ); ?>>
-                        <span class="spf-toggle-switch"></span>
-                        <span class="spf-toggle-text"><?php esc_html_e( 'Enable Conditional Logic', 'smart-programme-finder' ); ?></span>
-                    </label>
-                </div>
+                <div class="spf-conf-logic-section">
+                    <div class="spf-conf-logic-toggle-bar">
+                        <span class="spf-conf-logic-section-label"><?php esc_html_e( 'Conditional Logic', 'smart-programme-finder' ); ?></span>
+                        <label class="spf-toggle-label">
+                            <input type="checkbox" name="spf_conf_conditional" value="1" class="spf-conf-cond-toggle" <?php checked( $cond_on ); ?>>
+                            <span class="spf-toggle-switch"></span>
+                            <span class="spf-toggle-text"><?php esc_html_e( 'Enable', 'smart-programme-finder' ); ?></span>
+                        </label>
+                    </div>
 
-                <div class="spf-conf-conditions-wrap" <?php echo ! $cond_on ? 'style="display:none"' : ''; ?>>
+                    <div class="spf-conf-conditions-wrap" <?php echo ! $cond_on ? 'style="display:none"' : ''; ?>>
                     <div class="spf-conf-logic-header">
                         <select name="spf_conf_logic_type" class="spf-conf-logic-type">
                             <option value="use" <?php selected( $logic_type, 'use' ); ?>><?php esc_html_e( 'Use', 'smart-programme-finder' ); ?></option>
@@ -1952,6 +1954,7 @@ class SPF_Admin {
                             </button>
                         </div>
                         <?php endforeach; ?>
+                    </div>
                     </div>
                 </div>
 
