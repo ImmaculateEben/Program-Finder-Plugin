@@ -57,16 +57,20 @@
                 }
             });
 
-            /* On top-level Save: inject all fieldsData as hidden inputs */
-            $(document).on('submit', '#spf-settings-form', function () {
-                var $form = $(this);
+            /* On top-level Save: AJAX save — no page reload */
+            $(document).on('submit', '#spf-settings-form', function (e) {
+                e.preventDefault();
 
-                /* Remove any previously injected spf_fields inputs */
-                $form.find('input[name^="spf_fields["]').remove();
+                if (typeof spfBuilder === 'undefined') return;
 
+                var $form   = $(this);
+                var $btn    = $('.spf-topbar-btn--save');
+                var formData = $form.serializeArray();
+
+                /* Append all current fieldsData */
                 var fields = getFieldsData();
                 for (var i = 0; i < fields.length; i++) {
-                    var f = fields[i];
+                    var f    = fields[i];
                     var base = 'spf_fields[' + i + ']';
                     var props = {
                         id:                f.id,
@@ -87,17 +91,46 @@
                         conditionals:      JSON.stringify(f.conditionals || [])
                     };
                     for (var key in props) {
-                        $('<input>').attr({
-                            type: 'hidden',
-                            name: base + '[' + key + ']',
-                            value: props[key]
-                        }).appendTo($form);
+                        formData.push({ name: base + '[' + key + ']', value: props[key] });
                     }
                 }
 
-                /* Clear dirty and remove beforeunload so the submit proceeds cleanly */
-                setDirty(false);
-                $(window).off('beforeunload');
+                /* Add action + nonce */
+                formData.push({ name: 'action', value: 'spf_ajax_save_form' });
+                formData.push({ name: 'nonce',  value: spfBuilder.nonce });
+                formData.push({ name: 'form_id', value: $('#spf-builder').data('form-id') });
+
+                $btn.prop('disabled', true).find('.dashicons')
+                    .removeClass('dashicons-saved').addClass('dashicons-update spf-spin');
+
+                $.post(spfBuilder.ajaxUrl, formData, function (res) {
+                    $btn.prop('disabled', false).find('.dashicons')
+                        .removeClass('dashicons-update spf-spin').addClass('dashicons-saved');
+
+                    if (res.success) {
+                        /* Update topbar form name if it changed */
+                        var newName = $form.find('[name="spf_form_name"]').val();
+                        if (newName) {
+                            $('.spf-topbar-title strong').text(newName);
+                        }
+
+                        setDirty(false);
+                        $(window).off('beforeunload');
+
+                        /* Brief "Saved!" text feedback */
+                        var $label = $btn.contents().filter(function () {
+                            return this.nodeType === 3; /* text node */
+                        });
+                        var origText = $label.text().trim();
+                        $label[0].nodeValue = ' Saved!';
+                        setTimeout(function () {
+                            $label[0].nodeValue = ' ' + origText;
+                        }, 1500);
+                    }
+                }).fail(function () {
+                    $btn.prop('disabled', false).find('.dashicons')
+                        .removeClass('dashicons-update spf-spin').addClass('dashicons-saved');
+                });
             });
         }
 

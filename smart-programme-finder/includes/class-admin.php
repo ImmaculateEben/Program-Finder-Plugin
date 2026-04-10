@@ -80,6 +80,7 @@ class SPF_Admin {
         add_action( 'wp_ajax_spf_ajax_update_field', array( $this, 'ajax_update_field' ) );
         add_action( 'wp_ajax_spf_ajax_reorder_fields', array( $this, 'ajax_reorder_fields' ) );
         add_action( 'wp_ajax_spf_ajax_duplicate_field', array( $this, 'ajax_duplicate_field' ) );
+        add_action( 'wp_ajax_spf_ajax_save_form', array( $this, 'ajax_save_form' ) );
     }
 
     /* 
@@ -2060,6 +2061,138 @@ class SPF_Admin {
     /* ----------------------------------------
      * AJAX field handlers (no page reload)
      * ---------------------------------------- */
+
+    /**
+     * AJAX: Save form settings + all builder fields in one request.
+     * Replaces the classic form POST + redirect cycle so the UI never reloads.
+     */
+    public function ajax_save_form(): void {
+        check_ajax_referer( 'spf_builder_ajax', 'nonce' );
+        $this->require_admin_cap();
+
+        $form_id = isset( $_POST['form_id'] ) ? absint( $_POST['form_id'] ) : 0;
+        if ( 0 === $form_id ) {
+            wp_send_json_error( array( 'message' => __( 'Invalid form.', 'smart-programme-finder' ) ) );
+        }
+
+        /* ── Form meta (name, general, appearance) ── */
+        $forms = get_option( 'spf_forms', array() );
+        $found = false;
+
+        foreach ( $forms as &$form ) {
+            if ( (int) $form['id'] !== $form_id ) {
+                continue;
+            }
+            $found = true;
+
+            if ( isset( $_POST['spf_form_name'] ) ) {
+                $form['name'] = sanitize_text_field( wp_unslash( $_POST['spf_form_name'] ) );
+            }
+
+            $general = array();
+            foreach ( array_keys( self::DEFAULT_GENERAL ) as $gk ) {
+                $post_key       = 'spf_general_' . $gk;
+                $general[ $gk ] = isset( $_POST[ $post_key ] )
+                    ? sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) )
+                    : ( $form['general'][ $gk ] ?? self::DEFAULT_GENERAL[ $gk ] );
+            }
+            $form['general'] = $general;
+
+            $settings = array();
+            foreach ( array_keys( self::DEFAULT_APPEARANCE ) as $key ) {
+                $post_key        = 'spf_' . $key;
+                $settings[ $key ] = isset( $_POST[ $post_key ] )
+                    ? sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) )
+                    : ( $form['settings'][ $key ] ?? self::DEFAULT_APPEARANCE[ $key ] );
+            }
+            $form['settings'] = $settings;
+            break;
+        }
+        unset( $form );
+
+        if ( ! $found ) {
+            wp_send_json_error( array( 'message' => __( 'Form not found.', 'smart-programme-finder' ) ) );
+        }
+
+        update_option( 'spf_forms', $forms );
+
+        /* ── Fields ── */
+        $fields_payload = isset( $_POST['spf_fields'] ) ? $_POST['spf_fields'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+        if ( ! empty( $fields_payload ) && is_array( $fields_payload ) ) {
+            $all_fields   = get_option( 'spf_fields', array() );
+            $other_fields = array_values( array_filter( $all_fields, function ( $f ) use ( $form_id ) {
+                return (int) ( $f['form_id'] ?? 0 ) !== $form_id;
+            } ) );
+
+            $new_fields = array();
+            foreach ( $fields_payload as $fd ) {
+                if ( ! is_array( $fd ) ) {
+                    continue;
+                }
+
+                $type = sanitize_text_field( wp_unslash( $fd['type'] ?? 'text' ) );
+                if ( ! array_key_exists( $type, self::FIELD_TYPES ) ) {
+                    $type = 'text';
+                }
+
+                $size = sanitize_text_field( wp_unslash( $fd['size'] ?? 'medium' ) );
+                if ( ! in_array( $size, array( 'small', 'medium', 'large' ), true ) ) {
+                    $size = 'medium';
+                }
+
+                $field_id  = isset( $fd['id'] ) ? absint( $fd['id'] ) : 0;
+                $label     = sanitize_text_field( wp_unslash( $fd['label'] ?? '' ) );
+                $field_key = ! empty( $fd['field_key'] )
+                    ? sanitize_title( wp_unslash( $fd['field_key'] ) )
+                    : sanitize_title( $label ) . '_' . $field_id;
+
+                $options_raw = sanitize_textarea_field( wp_unslash( $fd['options'] ?? '' ) );
+                $options     = in_array( $type, self::OPTION_TYPES, true )
+                    ? array_values( array_filter( array_map( 'trim', explode( ',', $options_raw ) ) ) )
+                    : array();
+
+                $conditionals     = array();
+                $conditionals_raw = wp_unslash( $fd['conditionals'] ?? '[]' );
+                $decoded          = json_decode( $conditionals_raw, true );
+                if ( is_array( $decoded ) ) {
+                    foreach ( $decoded as $cond ) {
+                        if ( ! is_array( $cond ) ) {
+                            continue;
+                        }
+                        $conditionals[] = array(
+                            'field_key' => sanitize_text_field( $cond['field_key'] ?? '' ),
+                            'operator'  => sanitize_text_field( $cond['operator'] ?? 'is' ),
+                            'value'     => sanitize_text_field( $cond['value'] ?? '' ),
+                        );
+                    }
+                }
+
+                $new_fields[] = array(
+                    'id'                => $field_id,
+                    'form_id'           => $form_id,
+                    'field_key'         => $field_key,
+                    'label'             => $label,
+                    'type'              => $type,
+                    'size'              => $size,
+                    'placeholder'       => sanitize_text_field( wp_unslash( $fd['placeholder'] ?? '' ) ),
+                    'options'           => $options,
+                    'required'          => ! empty( $fd['required'] ) && '0' !== (string) $fd['required'],
+                    'description'       => sanitize_textarea_field( wp_unslash( $fd['description'] ?? '' ) ),
+                    'css_class'         => sanitize_text_field( wp_unslash( $fd['css_class'] ?? '' ) ),
+                    'hide_label'        => ! empty( $fd['hide_label'] ) && '0' !== (string) $fd['hide_label'],
+                    'default_value'     => sanitize_text_field( wp_unslash( $fd['default_value'] ?? '' ) ),
+                    'input_columns'     => sanitize_text_field( wp_unslash( $fd['input_columns'] ?? '' ) ),
+                    'conditional_logic' => ! empty( $fd['conditional_logic'] ) && '0' !== (string) $fd['conditional_logic'],
+                    'conditional_type'  => sanitize_text_field( wp_unslash( $fd['conditional_type'] ?? 'show' ) ),
+                    'conditionals'      => $conditionals,
+                );
+            }
+
+            update_option( 'spf_fields', array_merge( $other_fields, $new_fields ) );
+        }
+
+        wp_send_json_success( array( 'message' => __( 'Saved.', 'smart-programme-finder' ) ) );
+    }
 
     public function ajax_add_field(): void {
         check_ajax_referer( 'spf_builder_ajax', 'nonce' );
