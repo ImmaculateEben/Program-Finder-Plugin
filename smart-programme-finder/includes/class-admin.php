@@ -198,6 +198,11 @@ class SPF_Admin {
 
     public function handle_form_actions(): void {
 
+        /* Page-based form submissions only — skip during AJAX requests */
+        if ( wp_doing_ajax() ) {
+            return;
+        }
+
         /* Create form ------------------------ */
         if ( isset( $_POST['spf_create_form'] ) ) {
             $this->require_admin_cap();
