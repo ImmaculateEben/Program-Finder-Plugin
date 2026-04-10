@@ -95,6 +95,7 @@
 .spf-submit-group--inline {
     display: flex;
     align-items: flex-end;
+    align-self: flex-end;
 }
 
 .spf-submit-group--inline .spf-submit-btn {

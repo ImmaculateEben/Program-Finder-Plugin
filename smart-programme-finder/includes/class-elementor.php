@@ -617,6 +617,28 @@ class SPF_Elementor_Widget extends Widget_Base {
             ),
         ) );
 
+        $this->add_responsive_control( 'btn_vertical_align', array(
+            'label'   => __( 'Vertical Alignment', 'smart-programme-finder' ),
+            'type'    => Controls_Manager::CHOOSE,
+            'options' => array(
+                'flex-start' => array(
+                    'title' => __( 'Top', 'smart-programme-finder' ),
+                    'icon'  => 'eicon-v-align-top',
+                ),
+                'center'     => array(
+                    'title' => __( 'Middle', 'smart-programme-finder' ),
+                    'icon'  => 'eicon-v-align-middle',
+                ),
+                'flex-end'   => array(
+                    'title' => __( 'Bottom', 'smart-programme-finder' ),
+                    'icon'  => 'eicon-v-align-bottom',
+                ),
+            ),
+            'selectors' => array(
+                '{{WRAPPER}} .spf-form-wrapper .spf-submit-group' => 'align-self: {{VALUE}} !important;',
+            ),
+        ) );
+
         $this->add_group_control( Group_Control_Box_Shadow::get_type(), array(
             'name'     => 'btn_shadow',
             'selector' => '{{WRAPPER}} .spf-submit-btn',
