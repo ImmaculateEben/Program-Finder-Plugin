@@ -618,6 +618,11 @@
     transform: none !important;
 }
 
+/* Also reveal the inline confirmation in editor preview */
+.spf-popup-preview-yes .spf-confirmation-inline {
+    display: block !important;
+}
+
 /* ═══════════════════════════════════════════
  * Modal Card
  * ═══════════════════════════════════════════ */
