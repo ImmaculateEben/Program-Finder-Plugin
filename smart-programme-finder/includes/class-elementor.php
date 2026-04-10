@@ -902,6 +902,16 @@ class SPF_Elementor_Widget extends Widget_Base {
             ),
         ) );
 
+        $this->add_control( 'popup_lock_scroll', array(
+            'label'        => __( 'Lock Page Scroll While Open', 'smart-programme-finder' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Yes', 'smart-programme-finder' ),
+            'label_off'    => __( 'No', 'smart-programme-finder' ),
+            'return_value' => '1',
+            'default'      => '1',
+            'separator'    => 'before',
+        ) );
+
         /* Close Icon */
         $this->add_control( 'heading_close_icon', array(
             'label'     => __( 'Close Icon', 'smart-programme-finder' ),
@@ -1338,10 +1348,12 @@ class SPF_Elementor_Widget extends Widget_Base {
             $GLOBALS['spf_elementor_arrow_icon'] = $arrow_icon_html;
             $GLOBALS['spf_elementor_arrow_hide'] = $arrow_hide;
             $GLOBALS['spf_elementor_btn_pos']    = $btn_pos;
+            $GLOBALS['spf_elementor_lock_scroll'] = ( '1' === ( $s['popup_lock_scroll'] ?? '1' ) ) ? '1' : '0';
             echo do_shortcode( '[spf_form id="' . esc_attr( $form_id ) . '"]' );
             $GLOBALS['spf_elementor_arrow_icon'] = '';
             $GLOBALS['spf_elementor_arrow_hide'] = false;
             $GLOBALS['spf_elementor_btn_pos']    = '';
+            $GLOBALS['spf_elementor_lock_scroll'] = '';
             ?>
         </div>
         <?php

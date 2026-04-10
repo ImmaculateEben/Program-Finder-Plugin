@@ -219,15 +219,24 @@
         }
         $modal.removeAttr('hidden').addClass('spf-modal-visible');
 
+        if ($modal.data('lock-scroll') !== '0') {
+            $('body').css({ 'overflow': 'hidden', 'padding-right': getScrollbarWidth() + 'px' });
+        }
+
         // Focus trap — move focus into modal
         $modal.find('.spf-modal-close').trigger('focus');
     }
 
     function hideModal($modal) {
         $modal.removeClass('spf-modal-visible');
+        $('body').css({ 'overflow': '', 'padding-right': '' });
         setTimeout(function () {
             $modal.attr('hidden', '');
         }, 300);
+    }
+
+    function getScrollbarWidth() {
+        return window.innerWidth - document.documentElement.clientWidth;
     }
 
     /* ══════════════════════════════════════════

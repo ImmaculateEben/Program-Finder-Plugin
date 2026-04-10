@@ -13,9 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 $conf_btn_text = $conf_btn_text ?? __( 'Try Again', 'smart-programme-finder' );
+$lock_scroll   = $GLOBALS['spf_elementor_lock_scroll'] ?? '1';
 ?>
 
-<div class="spf-modal-overlay" id="spf-modal-<?php echo esc_attr( $form_id ); ?>" role="dialog" aria-modal="true" aria-labelledby="spf-modal-title-<?php echo esc_attr( $form_id ); ?>" hidden>
+<div class="spf-modal-overlay" id="spf-modal-<?php echo esc_attr( $form_id ); ?>" role="dialog" aria-modal="true" aria-labelledby="spf-modal-title-<?php echo esc_attr( $form_id ); ?>" data-lock-scroll="<?php echo esc_attr( $lock_scroll ); ?>" hidden>
     <div class="spf-modal">
         <button type="button" class="spf-modal-close" aria-label="<?php esc_attr_e( 'Close', 'smart-programme-finder' ); ?>">&times;</button>
 
