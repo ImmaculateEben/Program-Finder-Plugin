@@ -571,6 +571,24 @@ class SPF_Elementor_Widget extends Widget_Base {
             ),
         ) );
 
+        $this->add_responsive_control( 'btn_width_type', array(
+            'label'   => __( 'Width', 'smart-programme-finder' ),
+            'type'    => Controls_Manager::CHOOSE,
+            'options' => array(
+                '100%' => array(
+                    'title' => __( 'Full Width', 'smart-programme-finder' ),
+                    'icon'  => 'eicon-text-align-justify',
+                ),
+                'auto' => array(
+                    'title' => __( 'Content Width', 'smart-programme-finder' ),
+                    'icon'  => 'eicon-text-align-center',
+                ),
+            ),
+            'selectors' => array(
+                '{{WRAPPER}} .spf-form-wrapper .spf-submit-btn' => 'width: {{VALUE}} !important;',
+            ),
+        ) );
+
         $this->add_responsive_control( 'btn_height', array(
             'label'      => __( 'Height', 'smart-programme-finder' ),
             'type'       => Controls_Manager::SLIDER,
