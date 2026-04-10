@@ -186,6 +186,24 @@
     border-color: #b05a18;
 }
 
+/* Pulse indicator when there are unsaved field changes */
+.spf-topbar-btn--save.spf-has-changes {
+    background: #d63638;
+    border-color: #b32d2e;
+    animation: spf-save-pulse 2s ease-in-out infinite;
+}
+
+.spf-topbar-btn--save.spf-has-changes:hover {
+    background: #b32d2e;
+    border-color: #921e1f;
+    animation: none;
+}
+
+@keyframes spf-save-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(214, 54, 56, 0.5); }
+    50%       { box-shadow: 0 0 0 6px rgba(214, 54, 56, 0); }
+}
+
 .spf-topbar-btn--close {
     font-size: 20px;
     font-weight: 300;

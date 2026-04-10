@@ -20,6 +20,18 @@
 
     var optionTypes = ['select', 'radio', 'checkbox'];
 
+    /* Dirty-state tracking — true when there are unsaved field changes */
+    var isDirty = false;
+
+    function setDirty(dirty) {
+        isDirty = dirty;
+        if (dirty) {
+            $('.spf-topbar-btn--save').addClass('spf-has-changes');
+        } else {
+            $('.spf-topbar-btn--save').removeClass('spf-has-changes');
+        }
+    }
+
     $(document).ready(function () {
 
         var $builder = $('#spf-builder');
@@ -28,7 +40,7 @@
             initBuilderNav();
             initAjaxFields();
             initFieldClickEdit();
-            initAjaxFieldSave();
+            initApplyField();
             initAjaxFieldDelete();
             initAjaxFieldDuplicate();
             initConfirmationLogic();
@@ -37,6 +49,56 @@
             initFieldConditionLogic();
             initSortablePreview();
             initDraggableAddFields();
+
+            /* Warn before leaving with unsaved field changes */
+            $(window).on('beforeunload', function () {
+                if (isDirty) {
+                    return 'You have unsaved changes. Are you sure you want to leave?';
+                }
+            });
+
+            /* On top-level Save: inject all fieldsData as hidden inputs */
+            $(document).on('submit', '#spf-settings-form', function () {
+                var $form = $(this);
+
+                /* Remove any previously injected spf_fields inputs */
+                $form.find('input[name^="spf_fields["]').remove();
+
+                var fields = getFieldsData();
+                for (var i = 0; i < fields.length; i++) {
+                    var f = fields[i];
+                    var base = 'spf_fields[' + i + ']';
+                    var props = {
+                        id:                f.id,
+                        field_key:         f.field_key || '',
+                        label:             f.label || '',
+                        type:              f.type || 'text',
+                        size:              f.size || 'medium',
+                        placeholder:       f.placeholder || '',
+                        required:          f.required ? '1' : '0',
+                        options:           Array.isArray(f.options) ? f.options.join(', ') : '',
+                        description:       f.description || '',
+                        css_class:         f.css_class || '',
+                        hide_label:        f.hide_label ? '1' : '0',
+                        default_value:     f.default_value || '',
+                        input_columns:     f.input_columns || '',
+                        conditional_logic: f.conditional_logic ? '1' : '0',
+                        conditional_type:  f.conditional_type || 'show',
+                        conditionals:      JSON.stringify(f.conditionals || [])
+                    };
+                    for (var key in props) {
+                        $('<input>').attr({
+                            type: 'hidden',
+                            name: base + '[' + key + ']',
+                            value: props[key]
+                        }).appendTo($form);
+                    }
+                }
+
+                /* Clear dirty and remove beforeunload so the submit proceeds cleanly */
+                setDirty(false);
+                $(window).off('beforeunload');
+            });
         }
 
         /* Color Pickers */
@@ -192,6 +254,8 @@
                     var $n = $('#spf-preview-fields-grid .spf-preview-field[data-field-id="' + res.data.field.id + '"]');
                     $n.addClass('spf-preview-field--flash');
                     setTimeout(function () { $n.removeClass('spf-preview-field--flash'); }, 800);
+
+                    setDirty(true);
                 }
             }).fail(function () {
                 $btn.prop('disabled', false).removeClass('spf-loading');
@@ -361,7 +425,7 @@
             '</div>' +
 
             '<div class="spf-option-actions">' +
-            '<button type="submit" class="button button-primary">Save Field</button>' +
+            '<button type="button" class="button button-primary spf-apply-field-btn">Apply</button>' +
             '</div>' +
             '</form>';
 
@@ -394,69 +458,102 @@
     }
 
     /* -------------------------------------------
-     * AJAX Save Field
+     * Apply Field (local-state update only, no AJAX)
+     * Changes are held in memory until the top Save is pressed.
      * ----------------------------------------- */
-    function initAjaxFieldSave() {
-        $(document).on('submit', '#spf-field-options-form', function (e) {
-            e.preventDefault();
+    function initApplyField() {
+        $(document).on('click', '.spf-apply-field-btn', function () {
+            var $form = $('#spf-field-options-form');
+            if (!$form.length) return;
 
-            if (typeof spfBuilder === 'undefined') return;
+            var fieldId = parseInt($form.data('field-id'));
 
-            var $form = $(this);
-            var fieldId = $form.data('field-id');
-            var formId = $form.find('[name="spf_form_id"]').val();
+            /* Collect choices as an array */
+            var choicesRaw = collectChoices(); // comma-separated string
+            var optionsArr = choicesRaw
+                ? choicesRaw.split(',').map(function (v) { return v.trim(); }).filter(Boolean)
+                : [];
 
-            var data = {
-                action: 'spf_ajax_update_field',
-                nonce: spfBuilder.nonce,
-                field_id: fieldId,
-                form_id: formId,
-                label: $form.find('[name="spf_field_label"]').val(),
-                type: $form.find('[name="spf_field_type"]').val(),
-                size: $form.find('[name="spf_field_size"]').val(),
-                placeholder: $form.find('[name="spf_field_placeholder"]').val(),
-                required: $form.find('[name="spf_field_required"]').is(':checked') ? 1 : 0,
-                options: collectChoices(),
-                description: $form.find('[name="spf_field_description"]').val() || '',
-                css_class: $form.find('[name="spf_field_css_class"]').val() || '',
-                hide_label: $form.find('[name="spf_field_hide_label"]').is(':checked') ? 1 : 0,
-                default_value: $form.find('[name="spf_field_default_value"]').val() || '',
-                input_columns: $form.find('[name="spf_field_input_columns"]').val() || '',
-                conditional_logic: $form.find('[name="spf_field_conditional"]').is(':checked') ? 1 : 0,
-                conditional_type: $form.find('[name="spf_field_conditional_type"]').val() || 'show',
-                conditionals: JSON.stringify(collectFieldConditions())
+            var updatedField = {
+                id:                fieldId,
+                label:             $form.find('[name="spf_field_label"]').val() || '',
+                type:              $form.find('[name="spf_field_type"]').val() || 'text',
+                size:              $form.find('[name="spf_field_size"]').val() || 'medium',
+                placeholder:       $form.find('[name="spf_field_placeholder"]').val() || '',
+                required:          $form.find('[name="spf_field_required"]').is(':checked'),
+                options:           optionsArr,
+                description:       $form.find('[name="spf_field_description"]').val() || '',
+                css_class:         $form.find('[name="spf_field_css_class"]').val() || '',
+                hide_label:        $form.find('[name="spf_field_hide_label"]').is(':checked'),
+                default_value:     $form.find('[name="spf_field_default_value"]').val() || '',
+                input_columns:     $form.find('[name="spf_field_input_columns"]').val() || '',
+                conditional_logic: $form.find('[name="spf_field_conditional"]').is(':checked'),
+                conditional_type:  $form.find('[name="spf_field_conditional_type"]').val() || 'show',
+                conditionals:      collectFieldConditions()
             };
 
-            var $btn = $form.find('.button-primary');
-            $btn.prop('disabled', true).text('Saving...');
-
-            $.post(spfBuilder.ajaxUrl, data, function (res) {
-                $btn.prop('disabled', false).text('Save Field');
-
-                if (res.success) {
-                    /* Update preview field HTML */
-                    var $old = $('.spf-preview-field[data-field-id="' + fieldId + '"]');
-                    $old.replaceWith(res.data.preview_html);
-                    $('.spf-preview-field[data-field-id="' + fieldId + '"]').addClass('spf-preview-field--active');
-
-                    /* Update local fields data */
-                    var fields = getFieldsData();
-                    for (var i = 0; i < fields.length; i++) {
-                        if (parseInt(fields[i].id) === parseInt(fieldId)) {
-                            fields[i] = res.data.field;
-                            break;
-                        }
-                    }
-                    setFieldsData(fields);
-
-                    /* Brief success indicator */
-                    $btn.text('Saved!').addClass('button-saved');
-                    setTimeout(function () { $btn.text('Save Field').removeClass('button-saved'); }, 1500);
+            /* Merge into fieldsData, preserving form_id and field_key */
+            var fields = getFieldsData();
+            for (var i = 0; i < fields.length; i++) {
+                if (parseInt(fields[i].id) === fieldId) {
+                    updatedField.form_id   = fields[i].form_id;
+                    updatedField.field_key = fields[i].field_key;
+                    fields[i] = updatedField;
+                    break;
                 }
-            }).fail(function () {
-                $btn.prop('disabled', false).text('Save Field');
-            });
+            }
+            setFieldsData(fields);
+
+            /* Update the preview card in the DOM */
+            updatePreviewCard(updatedField);
+
+            /* Mark unsaved changes */
+            setDirty(true);
+
+            /* Brief "Applied!" feedback */
+            var $btn = $(this);
+            $btn.prop('disabled', true).text('Applied!');
+            setTimeout(function () {
+                $btn.prop('disabled', false).text('Apply');
+            }, 1000);
         });
+    }
+
+    /* Update a preview card's label and mockup without a page reload */
+    function updatePreviewCard(field) {
+        var $card = $('.spf-preview-field[data-field-id="' + field.id + '"]');
+        if (!$card.length) return;
+
+        var reqHtml = field.required ? ' <span class="spf-preview-req">*</span>' : '';
+        $card.find('.spf-preview-label').html(escAttr(field.label) + reqHtml);
+        $card.find('.spf-preview-field-mockup').html(buildMockupHtml(field));
+    }
+
+    /* Client-side mirror of PHP render_field_mockup() */
+    function buildMockupHtml(field) {
+        var type = field.type || 'text';
+        var ph   = escAttr(field.placeholder || field.label);
+
+        if (type === 'select') {
+            return '<div class="spf-mockup-select"><span>' + ph + '</span>' +
+                   '<span class="dashicons dashicons-arrow-down-alt2"></span></div>';
+        }
+        if (type === 'textarea') {
+            return '<div class="spf-mockup-textarea">' + ph + '</div>';
+        }
+        if (type === 'radio' || type === 'checkbox') {
+            var cls      = type === 'checkbox' ? 'spf-mockup-check' : 'spf-mockup-radio';
+            var shapeCls = type === 'checkbox' ? 'spf-mockup-square' : 'spf-mockup-circle';
+            var opts     = field.options || [];
+            var html     = '<div class="spf-mockup-choices">';
+            var limit    = Math.min(opts.length, 3);
+            for (var i = 0; i < limit; i++) {
+                html += '<label class="' + cls + '"><span class="' + shapeCls + '"></span>' + escAttr(opts[i]) + '</label>';
+            }
+            html += '</div>';
+            return html;
+        }
+        return '<div class="spf-mockup-input">' + ph + '</div>';
     }
 
     /* -------------------------------------------
@@ -490,7 +587,7 @@
             order.push($(this).data('field-id'));
         });
 
-        /* Also reorder the local fields data to match */
+        /* Reorder the local fields data to match the new drag order */
         var fields = getFieldsData();
         var reordered = [];
         for (var i = 0; i < order.length; i++) {
@@ -502,13 +599,7 @@
             }
         }
         setFieldsData(reordered);
-
-        $.post(spfBuilder.ajaxUrl, {
-            action: 'spf_ajax_reorder_fields',
-            nonce: spfBuilder.nonce,
-            form_id: $('#spf-builder').data('form-id'),
-            order: order
-        });
+        setDirty(true);
     }
 
     /* -------------------------------------------
@@ -610,6 +701,8 @@
                                 '</div>'
                             );
                         }
+
+                        setDirty(true);
                     });
                 } else {
                     $field.css('opacity', '1');
@@ -673,6 +766,8 @@
                     var $n = $('.spf-preview-field[data-field-id="' + res.data.field.id + '"]');
                     $n.addClass('spf-preview-field--flash');
                     setTimeout(function () { $n.removeClass('spf-preview-field--flash'); }, 800);
+
+                    setDirty(true);
                 }
             }).fail(function () {
                 $el.find('.dashicons').removeClass('dashicons-update spf-spin').addClass('dashicons-admin-page');
