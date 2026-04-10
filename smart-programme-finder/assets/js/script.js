@@ -52,26 +52,30 @@
                     data:     $form.serialize(),
                     dataType: 'json',
                     success: function (response) {
-                        var message = '';
+                        var message  = '';
                         var confType = 'popup';
+                        var isHtml   = false; // only admin-authored HTML gets .html()
 
                         if (response.success && response.data) {
+                            // Admin-authored confirmation — sanitized server-side with wp_kses_post.
                             message  = response.data.message || '';
                             confType = response.data.confirmation_type || 'popup';
+                            isHtml   = true;
                         } else if (response.data && response.data.message) {
-                            message = response.data.message;
+                            // Error / validation message — plain text, escape before rendering.
+                            message = escapeHtml(response.data.message);
                         } else {
-                            message = 'Something went wrong. Please try again.';
+                            message = escapeHtml('Something went wrong. Please try again.');
                         }
 
                         if (confType === 'message') {
-                            showInlineConfirmation($form, $inline, message);
+                            showInlineConfirmation($form, $inline, message, isHtml);
                         } else {
-                            showModal($modal, message);
+                            showModal($modal, message, isHtml);
                         }
                     },
                     error: function () {
-                        showModal($modal, 'A network error occurred. Please try again.');
+                        showModal($modal, escapeHtml('A network error occurred. Please try again.'), false);
                     },
                     complete: function () {
                         $btn.prop('disabled', false).removeClass('spf-loading');
@@ -207,8 +211,12 @@
     /* ══════════════════════════════════════════
      * Modal helpers
      * ══════════════════════════════════════════ */
-    function showModal($modal, message) {
-        $modal.find('.spf-modal-body').html(message);
+    function showModal($modal, message, isHtml) {
+        if (isHtml) {
+            $modal.find('.spf-modal-body').html(message);
+        } else {
+            $modal.find('.spf-modal-body').text(message);
+        }
         $modal.removeAttr('hidden').addClass('spf-modal-visible');
 
         // Focus trap — move focus into modal
@@ -225,8 +233,12 @@
     /* ══════════════════════════════════════════
      * Inline Confirmation helpers
      * ══════════════════════════════════════════ */
-    function showInlineConfirmation($form, $inline, message) {
-        $inline.find('.spf-inline-body').html(message);
+    function showInlineConfirmation($form, $inline, message, isHtml) {
+        if (isHtml) {
+            $inline.find('.spf-inline-body').html(message);
+        } else {
+            $inline.find('.spf-inline-body').text(message);
+        }
         $form.slideUp(300, function () {
             $inline.removeAttr('hidden').slideDown(300, function () {
                 // Scroll to the confirmation message

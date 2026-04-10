@@ -73,6 +73,11 @@ class SPF_Shortcode {
      * @param array  $args          Variables available inside the template.
      */
     private function load_template( string $template_name, array $args = array() ): void {
+        // Guard against path traversal: only known template names are accepted.
+        if ( ! in_array( $template_name, array( 'form', 'popup' ), true ) ) {
+            return;
+        }
+
         // Allow theme override
         $theme_file = locate_template( 'smart-programme-finder/' . $template_name . '.php' );
 

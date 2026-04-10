@@ -352,12 +352,12 @@ class SPF_Admin {
                 if ( is_array( $val ) ) {
                     $val = implode( ', ', $val );
                 }
-                $row[] = $val;
+                $row[] = $this->sanitize_csv_cell( (string) $val );
             }
 
-            $row[] = wp_strip_all_tags( $entry['result'] ?? '' );
+            $row[] = $this->sanitize_csv_cell( wp_strip_all_tags( $entry['result'] ?? '' ) );
             $row[] = ! empty( $entry['matched'] ) ? 'Yes' : 'No';
-            $row[] = $entry['ip'] ?? '';
+            $row[] = $this->sanitize_csv_cell( $entry['ip'] ?? '' );
 
             fputcsv( $output, $row );
         }
@@ -2058,6 +2058,21 @@ class SPF_Admin {
         settings_errors( 'spf_messages' );
     }
 
+    /**
+     * Strip formula-injection trigger characters from a CSV cell value.
+     *
+     * Spreadsheet applications (Excel, LibreOffice Calc) interpret cells that
+     * begin with `=`, `+`, `-`, `@`, TAB, or CR as formulas. This prevents
+     * stored user input from executing as a formula when an admin opens the
+     * exported CSV (CWE-1236 / CSV Injection).
+     *
+     * @param string $value Raw cell value.
+     * @return string Sanitized cell value.
+     */
+    private function sanitize_csv_cell( string $value ): string {
+        return ltrim( $value, "=+-@\t\r\n" );
+    }
+
     /* ----------------------------------------
      * AJAX field handlers (no page reload)
      * ---------------------------------------- */
@@ -2117,8 +2132,11 @@ class SPF_Admin {
         update_option( 'spf_forms', $forms );
 
         /* ── Fields ── */
-        $fields_payload = isset( $_POST['spf_fields'] ) ? $_POST['spf_fields'] : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
-        if ( ! empty( $fields_payload ) && is_array( $fields_payload ) ) {
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- each key sanitized individually in the foreach loop below.
+        $fields_payload = isset( $_POST['spf_fields'] ) && is_array( $_POST['spf_fields'] )
+            ? wp_unslash( $_POST['spf_fields'] )
+            : array();
+        if ( ! empty( $fields_payload ) ) {
             $all_fields   = get_option( 'spf_fields', array() );
             $other_fields = array_values( array_filter( $all_fields, function ( $f ) use ( $form_id ) {
                 return (int) ( $f['form_id'] ?? 0 ) !== $form_id;

@@ -128,7 +128,21 @@ $conf_btn_text   = $conf_btn_text ?? ( $spf_general['conf_btn_text'] ?? 'Try Aga
                         <option value="<?php echo esc_attr( $option ); ?>"><?php echo esc_html( $option ); ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <?php if ( $spf_arrow_icon ) echo $spf_arrow_icon; // phpcs:ignore WordPress.Security.EscapeOutput -- sanitised by Icons_Manager ?>
+                    <?php
+                    if ( $spf_arrow_icon ) {
+                        // Pass through wp_kses with an SVG-aware allowlist — output originates
+                        // from Elementor Icons_Manager but we defensively re-validate it here.
+                        $spf_svg_kses = array_merge(
+                            wp_kses_allowed_html( 'post' ),
+                            array(
+                                'svg'  => array( 'xmlns' => true, 'viewbox' => true, 'width' => true, 'height' => true, 'aria-hidden' => true, 'focusable' => true, 'class' => true ),
+                                'path' => array( 'd' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true, 'stroke-linecap' => true, 'stroke-linejoin' => true ),
+                                'use'  => array( 'xlink:href' => true, 'href' => true ),
+                            )
+                        );
+                        echo wp_kses( $spf_arrow_icon, $spf_svg_kses );
+                    }
+                    ?>
                     </div>
                 <?php break;
 
