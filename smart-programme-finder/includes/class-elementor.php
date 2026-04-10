@@ -892,11 +892,28 @@ class SPF_Elementor_Widget extends Widget_Base {
             ),
         ) );
 
-        $this->add_control( 'popup_max_width', array(
+        $this->add_control( 'popup_preview', array(
+            'label'        => __( 'Preview Popup in Editor', 'smart-programme-finder' ),
+            'type'         => Controls_Manager::SWITCHER,
+            'label_on'     => __( 'Show', 'smart-programme-finder' ),
+            'label_off'    => __( 'Hide', 'smart-programme-finder' ),
+            'return_value' => 'yes',
+            'default'      => '',
+            'prefix_class' => 'spf-popup-preview-',
+            'separator'    => 'before',
+        ) );
+
+        $this->add_responsive_control( 'popup_max_width', array(
             'label'      => __( 'Max Width', 'smart-programme-finder' ),
             'type'       => Controls_Manager::SLIDER,
-            'size_units' => array( 'px' ),
-            'range'      => array( 'px' => array( 'min' => 300, 'max' => 800, 'step' => 10 ) ),
+            'size_units' => array( 'px', '%', 'vw', 'em', 'rem' ),
+            'range'      => array(
+                'px'  => array( 'min' => 200, 'max' => 1200, 'step' => 10 ),
+                '%'   => array( 'min' => 10,  'max' => 100,  'step' => 1 ),
+                'vw'  => array( 'min' => 10,  'max' => 100,  'step' => 1 ),
+                'em'  => array( 'min' => 10,  'max' => 80,   'step' => 0.5 ),
+                'rem' => array( 'min' => 10,  'max' => 80,   'step' => 0.5 ),
+            ),
             'selectors'  => array(
                 '{{WRAPPER}} .spf-modal' => 'max-width: {{SIZE}}{{UNIT}};',
             ),

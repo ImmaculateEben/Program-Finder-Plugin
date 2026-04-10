@@ -602,6 +602,22 @@
     visibility: visible;
 }
 
+/* Elementor editor preview — force modal visible when "Preview Popup in Editor" is on */
+.spf-popup-preview-yes .spf-modal-overlay {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    position: relative !important;
+    inset: auto !important;
+    z-index: 1 !important;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.spf-popup-preview-yes .spf-modal-overlay .spf-modal {
+    transform: none !important;
+}
+
 /* ═══════════════════════════════════════════
  * Modal Card
  * ═══════════════════════════════════════════ */
