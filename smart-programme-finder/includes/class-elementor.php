@@ -571,6 +571,20 @@ class SPF_Elementor_Widget extends Widget_Base {
             ),
         ) );
 
+        $this->add_responsive_control( 'btn_height', array(
+            'label'      => __( 'Height', 'smart-programme-finder' ),
+            'type'       => Controls_Manager::SLIDER,
+            'size_units' => array( 'px', 'em', 'rem' ),
+            'range'      => array(
+                'px'  => array( 'min' => 20, 'max' => 200, 'step' => 1 ),
+                'em'  => array( 'min' => 1, 'max' => 10, 'step' => 0.1 ),
+                'rem' => array( 'min' => 1, 'max' => 10, 'step' => 0.1 ),
+            ),
+            'selectors'  => array(
+                '{{WRAPPER}} .spf-form-wrapper .spf-submit-btn' => 'height: {{SIZE}}{{UNIT}} !important; min-height: unset !important;',
+            ),
+        ) );
+
         $this->add_responsive_control( 'btn_text_align', array(
             'label'   => __( 'Text Alignment', 'smart-programme-finder' ),
             'type'    => Controls_Manager::CHOOSE,
