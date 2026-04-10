@@ -806,6 +806,7 @@
 }
 
 .spf-toggle-switch {
+    display: inline-block;
     position: relative;
     width: 44px;
     height: 24px;
@@ -813,6 +814,7 @@
     border-radius: 12px;
     transition: background 0.2s;
     flex-shrink: 0;
+    vertical-align: middle;
 }
 
 .spf-toggle-switch::after {

@@ -1889,9 +1889,9 @@ class SPF_Admin {
                     <div class="spf-conf-logic-toggle-bar">
                         <span class="spf-conf-logic-section-label"><?php esc_html_e( 'Conditional Logic', 'smart-programme-finder' ); ?></span>
                         <label class="spf-toggle-label">
+                            <span class="spf-toggle-text"><?php esc_html_e( 'Enable', 'smart-programme-finder' ); ?></span>
                             <input type="checkbox" name="spf_conf_conditional" value="1" class="spf-conf-cond-toggle" <?php checked( $cond_on ); ?>>
                             <span class="spf-toggle-switch"></span>
-                            <span class="spf-toggle-text"><?php esc_html_e( 'Enable', 'smart-programme-finder' ); ?></span>
                         </label>
                     </div>
 
