@@ -27,8 +27,11 @@ class SPF_Ajax {
      * Process an AJAX form submission.
      */
     public function handle_submission(): void {
-        // Nonce check
-        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'spf_submit_nonce' ) ) {
+        // Extract form ID first so the nonce can be form-bound (prevents cross-form probing).
+        $form_id = isset( $_POST['form_id'] ) ? absint( $_POST['form_id'] ) : 0;
+
+        // Nonce check — action is bound to the specific form ID.
+        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'spf_submit_nonce_' . $form_id ) ) {
             wp_send_json_error( array(
                 'message' => __( 'Security check failed. Please refresh the page and try again.', 'smart-programme-finder' ),
             ), 403 );
@@ -44,9 +47,6 @@ class SPF_Ajax {
             ), 429 );
         }
         set_transient( $rate_key, $submissions + 1, 60 );
-
-        // Determine form ID
-        $form_id = isset( $_POST['form_id'] ) ? absint( $_POST['form_id'] ) : 0;
 
         // Retrieve fields for this specific form
         $all_fields = get_option( 'spf_fields', array() );
@@ -137,6 +137,13 @@ class SPF_Ajax {
             $entries = array();
         }
 
+        // Enforce maximum entry limit (default 10,000) to prevent storage-exhaustion DoS.
+        $max_entries = (int) apply_filters( 'spf_max_entries', 10000 );
+        if ( count( $entries ) >= $max_entries ) {
+            // Drop oldest entries to stay within the cap.
+            $entries = array_slice( $entries, count( $entries ) - $max_entries + 1 );
+        }
+
         $entry_id = count( $entries ) > 0 ? max( array_column( $entries, 'id' ) ) + 1 : 1;
 
         $entries[] = array(
@@ -152,7 +159,7 @@ class SPF_Ajax {
         update_option( 'spf_entries', $entries );
 
         wp_send_json_success( array(
-            'message'           => $result['message'],
+            'message'           => wp_kses_post( $result['message'] ),
             'matched'           => $result['matched'],
             'fallback'          => ! $result['matched'],
             'confirmation_type' => $result['confirmation_type'] ?? 'popup',

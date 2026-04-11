@@ -122,7 +122,6 @@ add_action( 'wp_enqueue_scripts', function () {
 
     wp_localize_script( 'spf-frontend', 'spf_ajax', array(
         'ajax_url' => admin_url( 'admin-ajax.php' ),
-        'nonce'    => wp_create_nonce( 'spf_submit_nonce' ),
     ) );
 } );
 

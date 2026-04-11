@@ -120,7 +120,7 @@ class SPF_Rules_Engine {
             if ( $this->evaluate_legacy_condition( $rule, $form_data ) ) {
                 return array(
                     'matched'           => true,
-                    'message'           => $rule['result'],
+                    'message'           => wp_kses_post( $rule['result'] ?? '' ),
                     'confirmation_type' => 'popup',
                 );
             }

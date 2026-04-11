@@ -72,7 +72,7 @@ $conf_btn_text   = $conf_btn_text ?? ( $spf_general['conf_btn_text'] ?? 'Try Aga
 <div class="spf-form-wrapper" data-form-id="<?php echo esc_attr( $form_id ); ?>" style="<?php echo esc_attr( $css ); ?>">
     <form class="spf-form" id="spf-form-<?php echo esc_attr( $form_id ); ?>" novalidate>
         <input type="hidden" name="action" value="spf_submit_form">
-        <input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'spf_submit_nonce' ) ); ?>">
+        <input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'spf_submit_nonce_' . (int) $form_id ) ); ?>">
         <input type="hidden" name="form_id" value="<?php echo esc_attr( $form_id ); ?>">
 
         <div class="spf-fields-grid spf-fields-grid--<?php echo esc_attr( $columns ); ?>" style="gap:<?php echo esc_attr( $spacing ); ?>px;">

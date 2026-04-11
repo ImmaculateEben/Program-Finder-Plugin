@@ -855,7 +855,7 @@ class SPF_Admin {
                 'id'                => $new_id,
                 'form_id'           => $form_id,
                 'name'              => 'Rule #' . ( $rule['id'] ?? $new_id ),
-                'message'           => $rule['result'] ?? '',
+                'message'           => wp_kses_post( $rule['result'] ?? '' ),
                 'conditional_logic' => true,
                 'logic_type'        => 'use',
                 'conditions'        => array(
