@@ -1118,6 +1118,15 @@ class SPF_Admin {
                     break;
                 }
             }
+
+            // Build a field_key → label map for this form so the detail view shows human-readable labels.
+            $all_fields   = get_option( 'spf_fields', array() );
+            $field_labels = array();
+            foreach ( $all_fields as $field ) {
+                if ( (int) ( $field['form_id'] ?? 0 ) === (int) $entry['form_id'] ) {
+                    $field_labels[ $field['field_key'] ] = $field['label'] ?? $field['field_key'];
+                }
+            }
             ?>
             <div class="wrap spf-admin-wrap">
                 <h1>
@@ -1133,7 +1142,7 @@ class SPF_Admin {
                             <tr><th><?php esc_html_e( 'Matched', 'smart-programme-finder' ); ?></th><td><?php echo $entry['matched'] ? esc_html__( 'Yes', 'smart-programme-finder' ) : esc_html__( 'No', 'smart-programme-finder' ); ?></td></tr>
                             <tr><th><?php esc_html_e( 'IP Address', 'smart-programme-finder' ); ?></th><td><?php echo esc_html( $entry['ip'] ?? '' ); ?></td></tr>
                             <?php if ( ! empty( $entry['fields'] ) ) : foreach ( $entry['fields'] as $key => $val ) : ?>
-                            <tr><th><?php echo esc_html( $key ); ?></th><td><?php echo esc_html( is_array( $val ) ? implode( ', ', $val ) : $val ); ?></td></tr>
+                            <tr><th><?php echo esc_html( $field_labels[ $key ] ?? $key ); ?></th><td><?php echo esc_html( is_array( $val ) ? implode( ', ', $val ) : $val ); ?></td></tr>
                             <?php endforeach; endif; ?>
                         </tbody>
                     </table>
