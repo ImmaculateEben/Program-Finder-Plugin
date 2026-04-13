@@ -129,34 +129,23 @@ class SPF_Ajax {
         $engine = new SPF_Rules_Engine( $form_id );
         $result = $engine->match_rules( $form_data );
 
-        // Store entry.
-        $entries = get_option( 'spf_entries', array() );
-
-        // Validate entries is an array (guard against corrupted option).
-        if ( ! is_array( $entries ) ) {
-            $entries = array();
-        }
-
-        // Enforce maximum entry limit (default 10,000) to prevent storage-exhaustion DoS.
-        $max_entries = (int) apply_filters( 'spf_max_entries', 10000 );
-        if ( count( $entries ) >= $max_entries ) {
-            // Drop oldest entries to stay within the cap.
-            $entries = array_slice( $entries, count( $entries ) - $max_entries + 1 );
-        }
-
-        $entry_id = count( $entries ) > 0 ? max( array_column( $entries, 'id' ) ) + 1 : 1;
-
-        $entries[] = array(
-            'id'         => $entry_id,
+        // Store every submission — no cap. Entries persist until an admin deletes them.
+        $entries_store   = SPF_Entries_Store::instance();
+        $stored_entry_id = $entries_store->add_entry( array(
             'form_id'    => $form_id,
             'fields'     => $form_data,
             'result'     => $result['message'],
             'matched'    => $result['matched'],
             'created_at' => current_time( 'mysql' ),
-            'ip'         => $this->get_user_ip(),
+            'ip'         => $ip,
             'user_agent' => isset( $_SERVER['HTTP_USER_AGENT'] ) ? mb_substr( sanitize_text_field( wp_unslash( $_SERVER['HTTP_USER_AGENT'] ) ), 0, 255 ) : '',
-        );
-        update_option( 'spf_entries', $entries );
+        ) );
+
+        if ( $stored_entry_id <= 0 ) {
+            wp_send_json_error( array(
+                'message' => __( 'We could not save your submission right now. Please try again later.', 'smart-programme-finder' ),
+            ), 500 );
+        }
 
         wp_send_json_success( array(
             'message'           => wp_kses_post( $result['message'] ),
