@@ -32,6 +32,47 @@
         }
     }
 
+    function getBuilderMessage(key, fallback) {
+        if (typeof spfBuilder !== 'undefined' && spfBuilder.messages && spfBuilder.messages[key]) {
+            return spfBuilder.messages[key];
+        }
+        return fallback;
+    }
+
+    function getAjaxErrorMessage(payload, fallback) {
+        if (payload && payload.data && payload.data.message) {
+            return payload.data.message;
+        }
+        if (payload && payload.responseJSON && payload.responseJSON.data && payload.responseJSON.data.message) {
+            return payload.responseJSON.data.message;
+        }
+        return fallback;
+    }
+
+    function showBuilderNotice(message, type) {
+        var $wrap = $('.spf-builder-ajax-notices');
+        if (!$wrap.length) return;
+
+        var noticeType = type === 'success' ? 'success' : 'error';
+        var $notice = $('<div class="spf-builder-notice"></div>')
+            .addClass('spf-builder-notice--' + noticeType)
+            .text(message);
+
+        $wrap.empty().append($notice);
+
+        if (noticeType === 'success') {
+            setTimeout(function () {
+                $notice.fadeOut(200, function () {
+                    $(this).remove();
+                });
+            }, 2400);
+        }
+    }
+
+    function clearBuilderNotice() {
+        $('.spf-builder-ajax-notices').empty();
+    }
+
     $(document).ready(function () {
 
         var $builder = $('#spf-builder');
@@ -102,6 +143,7 @@
 
                 $btn.prop('disabled', true).find('.dashicons')
                     .removeClass('dashicons-saved').addClass('dashicons-update spf-spin');
+                clearBuilderNotice();
 
                 $.post(spfBuilder.ajaxUrl, formData, function (res) {
                     $btn.prop('disabled', false).find('.dashicons')
@@ -124,10 +166,20 @@
                         setTimeout(function () {
                             $label.text(origText);
                         }, 1500);
+                        showBuilderNotice(res.data && res.data.message ? res.data.message : 'Saved.', 'success');
+                    } else {
+                        showBuilderNotice(
+                            getAjaxErrorMessage(res, getBuilderMessage('unexpectedError', 'Something went wrong. Please try again.')),
+                            'error'
+                        );
                     }
-                }).fail(function () {
+                }).fail(function (xhr) {
                     $btn.prop('disabled', false).find('.dashicons')
                         .removeClass('dashicons-update spf-spin').addClass('dashicons-saved');
+                    showBuilderNotice(
+                        getAjaxErrorMessage(xhr, getBuilderMessage('networkError', 'A network error prevented the request from completing. Please try again.')),
+                        'error'
+                    );
                 });
             });
         }
@@ -253,6 +305,7 @@
             var formId = $('#spf-builder').data('form-id');
 
             $btn.prop('disabled', true).addClass('spf-loading');
+            clearBuilderNotice();
 
             $.post(spfBuilder.ajaxUrl, {
                 action: 'spf_ajax_add_field',
@@ -287,9 +340,18 @@
                     setTimeout(function () { $n.removeClass('spf-preview-field--flash'); }, 800);
 
                     setDirty(true);
+                } else {
+                    showBuilderNotice(
+                        getAjaxErrorMessage(res, getBuilderMessage('unexpectedError', 'Something went wrong. Please try again.')),
+                        'error'
+                    );
                 }
-            }).fail(function () {
+            }).fail(function (xhr) {
                 $btn.prop('disabled', false).removeClass('spf-loading');
+                showBuilderNotice(
+                    getAjaxErrorMessage(xhr, getBuilderMessage('networkError', 'A network error prevented the request from completing. Please try again.')),
+                    'error'
+                );
             });
         });
     }
@@ -698,6 +760,7 @@
             var $field = $el.closest('.spf-preview-field');
 
             $field.css('opacity', '0.5');
+            clearBuilderNotice();
 
             $.post(spfBuilder.ajaxUrl, {
                 action: 'spf_ajax_delete_field',
@@ -737,9 +800,17 @@
                     });
                 } else {
                     $field.css('opacity', '1');
+                    showBuilderNotice(
+                        getAjaxErrorMessage(res, getBuilderMessage('unexpectedError', 'Something went wrong. Please try again.')),
+                        'error'
+                    );
                 }
-            }).fail(function () {
+            }).fail(function (xhr) {
                 $field.css('opacity', '1');
+                showBuilderNotice(
+                    getAjaxErrorMessage(xhr, getBuilderMessage('networkError', 'A network error prevented the request from completing. Please try again.')),
+                    'error'
+                );
             });
         });
     }
@@ -759,6 +830,7 @@
             var $field = $el.closest('.spf-preview-field');
 
             $el.find('.dashicons').removeClass('dashicons-admin-page').addClass('dashicons-update spf-spin');
+            clearBuilderNotice();
 
             $.post(spfBuilder.ajaxUrl, {
                 action: 'spf_ajax_duplicate_field',
@@ -799,9 +871,18 @@
                     setTimeout(function () { $n.removeClass('spf-preview-field--flash'); }, 800);
 
                     setDirty(true);
+                } else {
+                    showBuilderNotice(
+                        getAjaxErrorMessage(res, getBuilderMessage('unexpectedError', 'Something went wrong. Please try again.')),
+                        'error'
+                    );
                 }
-            }).fail(function () {
+            }).fail(function (xhr) {
                 $el.find('.dashicons').removeClass('dashicons-update spf-spin').addClass('dashicons-admin-page');
+                showBuilderNotice(
+                    getAjaxErrorMessage(xhr, getBuilderMessage('networkError', 'A network error prevented the request from completing. Please try again.')),
+                    'error'
+                );
             });
         });
     }

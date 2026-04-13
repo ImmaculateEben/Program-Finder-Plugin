@@ -65,11 +65,32 @@ foreach ( $spf_forms_all as $spf_f ) {
 }
 $processing_text = $spf_general['button_processing_text'] ?? ( $spf_general['submit_processing'] ?? 'Finding your best match...' );
 $conf_btn_text   = $conf_btn_text ?? ( $spf_general['conf_btn_text'] ?? 'Try Again' );
+$spf_normalize_classes = static function ( $classes ): array {
+    if ( ! is_string( $classes ) || '' === trim( $classes ) ) {
+        return array();
+    }
+
+    $tokens = preg_split( '/\s+/', trim( $classes ) );
+    if ( ! is_array( $tokens ) ) {
+        return array();
+    }
+
+    $tokens = array_map( 'sanitize_html_class', $tokens );
+    return array_values( array_filter( $tokens ) );
+};
+$wrapper_classes = array_merge(
+    array( 'spf-form-wrapper' ),
+    $spf_normalize_classes( $spf_general['form_css_class'] ?? '' )
+);
+$button_classes = array_merge(
+    array( 'spf-submit-btn' ),
+    $spf_normalize_classes( $spf_general['button_css_class'] ?? '' )
+);
 
 
 ?>
 
-<div class="spf-form-wrapper" data-form-id="<?php echo esc_attr( $form_id ); ?>" style="<?php echo esc_attr( $css ); ?>">
+<div class="<?php echo esc_attr( implode( ' ', $wrapper_classes ) ); ?>" data-form-id="<?php echo esc_attr( $form_id ); ?>" style="<?php echo esc_attr( $css ); ?>">
     <form class="spf-form" id="spf-form-<?php echo esc_attr( $form_id ); ?>" novalidate>
         <input type="hidden" name="action" value="spf_submit_form">
         <input type="hidden" name="nonce" value="<?php echo esc_attr( wp_create_nonce( 'spf_submit_nonce_' . (int) $form_id ) ); ?>">
@@ -88,8 +109,15 @@ $conf_btn_text   = $conf_btn_text ?? ( $spf_general['conf_btn_text'] ?? 'Try Aga
             $has_cond       = ! empty( $field['conditional_logic'] );
             $cond_type      = $field['conditional_type'] ?? 'show';
             $conditionals   = $field['conditionals'] ?? array();
+            $field_classes  = array_merge(
+                array(
+                    'spf-field-group',
+                    'spf-field--' . sanitize_html_class( $field_size ),
+                ),
+                $spf_normalize_classes( $field['css_class'] ?? '' )
+            );
         ?>
-        <div class="spf-field-group spf-field--<?php echo esc_attr( $field_size ); ?>"
+        <div class="<?php echo esc_attr( implode( ' ', $field_classes ) ); ?>"
              data-field-type="<?php echo esc_attr( $field_type ); ?>"
              data-field-key="<?php echo esc_attr( $field_key ); ?>"
              <?php if ( $has_cond && ! empty( $conditionals ) ) : ?>
@@ -250,7 +278,7 @@ $conf_btn_text   = $conf_btn_text ?? ( $spf_general['conf_btn_text'] ?? 'Try Aga
         <?php endforeach; ?>
         <?php if ( 'inline' === $btn_pos ) : ?>
             <div class="spf-submit-group spf-submit-group--inline">
-                <button type="submit" class="spf-submit-btn" data-processing-text="<?php echo esc_attr( $processing_text ); ?>">
+                <button type="submit" class="<?php echo esc_attr( implode( ' ', $button_classes ) ); ?>" data-processing-text="<?php echo esc_attr( $processing_text ); ?>">
                     <span class="spf-btn-text"><?php echo esc_html( $btn_text ); ?></span>
                     <span class="spf-btn-loader" aria-hidden="true"></span>
                 </button>
@@ -260,7 +288,7 @@ $conf_btn_text   = $conf_btn_text ?? ( $spf_general['conf_btn_text'] ?? 'Try Aga
 
         <?php if ( 'inline' !== $btn_pos ) : ?>
         <div class="spf-submit-group spf-submit-group--<?php echo esc_attr( $btn_pos ); ?>">
-            <button type="submit" class="spf-submit-btn" data-processing-text="<?php echo esc_attr( $processing_text ); ?>">
+            <button type="submit" class="<?php echo esc_attr( implode( ' ', $button_classes ) ); ?>" data-processing-text="<?php echo esc_attr( $processing_text ); ?>">
                 <span class="spf-btn-text"><?php echo esc_html( $btn_text ); ?></span>
                 <span class="spf-btn-loader" aria-hidden="true"></span>
             </button>

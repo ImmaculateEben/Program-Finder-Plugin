@@ -186,8 +186,12 @@ class SPF_Admin {
 
             // Pass data to JS for AJAX-based builder.
             wp_localize_script( 'spf-admin', 'spfBuilder', array(
-                'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-                'nonce'   => wp_create_nonce( 'spf_builder_ajax' ),
+                'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
+                'nonce'    => wp_create_nonce( 'spf_builder_ajax' ),
+                'messages' => array(
+                    'unexpectedError' => __( 'Something went wrong. Please try again.', 'smart-programme-finder' ),
+                    'networkError'    => __( 'A network error prevented the request from completing. Please try again.', 'smart-programme-finder' ),
+                ),
             ) );
         }
     }
@@ -271,11 +275,7 @@ class SPF_Admin {
             $this->require_admin_cap();
             $eid = intval( $_GET['spf_delete_entry'] );
             check_admin_referer( 'spf_delete_entry_' . $eid );
-            $entries = get_option( 'spf_entries', array() );
-            $entries = array_values( array_filter( $entries, function ( $e ) use ( $eid ) {
-                return (int) ( $e['id'] ?? 0 ) !== $eid;
-            } ) );
-            update_option( 'spf_entries', $entries );
+            $this->get_entries_store()->delete_entry( $eid );
             add_settings_error( 'spf_messages', 'spf_entry_deleted', __( 'Entry deleted.', 'smart-programme-finder' ), 'updated' );
             wp_safe_redirect( admin_url( 'admin.php?page=spf-entries' ) );
             exit;
@@ -295,6 +295,14 @@ class SPF_Admin {
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_die( esc_html__( 'Unauthorized.', 'smart-programme-finder' ) );
         }
+    }
+
+    private function send_ajax_error( string $message, int $status = 400 ): void {
+        wp_send_json_error( array( 'message' => $message ), $status );
+    }
+
+    private function get_entries_store(): SPF_Entries_Store {
+        return SPF_Entries_Store::instance();
     }
 
     /**
@@ -913,30 +921,7 @@ class SPF_Admin {
     }
 
     private function get_entries_for_form( int $form_id ): array {
-        $all = get_option( 'spf_entries', array() );
-        return array_values( array_filter( $all, function ( $e ) use ( $form_id ) {
-            return (int) ( $e['form_id'] ?? 0 ) === $form_id;
-        } ) );
-    }
-
-    private function get_entries_since( int $form_id, string $since ): int {
-        $entries = $this->get_entries_for_form( $form_id );
-        $count   = 0;
-        foreach ( $entries as $e ) {
-            if ( ( $e['created_at'] ?? '' ) >= $since ) {
-                $count++;
-            }
-        }
-        return $count;
-    }
-
-    private function get_last_entry_date( int $form_id ): string {
-        $entries = $this->get_entries_for_form( $form_id );
-        if ( empty( $entries ) ) {
-            return '';
-        }
-        $last = end( $entries );
-        return $last['created_at'] ?? '';
+        return $this->get_entries_store()->get_entries_for_form( $form_id );
     }
 
     /* 
@@ -944,10 +929,8 @@ class SPF_Admin {
      *  */
 
     public function render_dashboard(): void {
-        $forms   = $this->get_forms();
-        $fields  = get_option( 'spf_fields', array() );
-        $confs   = get_option( 'spf_confirmations', array() );
-        $entries = get_option( 'spf_entries', array() );
+        $forms         = $this->get_forms();
+        $entries_total = $this->get_entries_store()->count_entries();
         ?>
         <div class="wrap spf-admin-wrap">
             <h1><?php esc_html_e( 'Smart Programme Finder', 'smart-programme-finder' ); ?></h1>
@@ -961,7 +944,7 @@ class SPF_Admin {
                 </div>
                 <div class="spf-card">
                     <h2><?php esc_html_e( 'Entries', 'smart-programme-finder' ); ?></h2>
-                    <p><?php echo esc_html( count( $entries ) ); ?> <?php esc_html_e( 'total submissions.', 'smart-programme-finder' ); ?></p>
+                    <p><?php echo esc_html( $entries_total ); ?> <?php esc_html_e( 'total submissions.', 'smart-programme-finder' ); ?></p>
                     <a href="<?php echo esc_url( admin_url( 'admin.php?page=spf-entries' ) ); ?>" class="button"><?php esc_html_e( 'View Entries', 'smart-programme-finder' ); ?></a>
                 </div>
                 <div class="spf-card">
@@ -982,9 +965,8 @@ class SPF_Admin {
      *  */
 
     public function render_forms(): void {
-        $forms       = $this->get_forms();
-        $total       = count( $forms );
-        $all_entries = get_option( 'spf_entries', array() );
+        $forms = $this->get_forms();
+        $total = count( $forms );
         ?>
         <div class="wrap spf-forms-overview">
             <h1 class="wp-heading-inline"><?php esc_html_e( 'Forms Overview', 'smart-programme-finder' ); ?></h1>
@@ -1099,14 +1081,7 @@ class SPF_Admin {
         /* ---------- Single entry detail ---------- */
         if ( 'detail' === $view && isset( $_GET['entry_id'] ) ) {
             $entry_id = (int) $_GET['entry_id'];
-            $all      = get_option( 'spf_entries', array() );
-            $entry    = null;
-            foreach ( $all as $e ) {
-                if ( (int) ( $e['id'] ?? 0 ) === $entry_id ) {
-                    $entry = $e;
-                    break;
-                }
-            }
+            $entry    = $this->get_entries_store()->get_entry( $entry_id );
             if ( ! $entry ) {
                 echo '<div class="wrap"><h1>' . esc_html__( 'Entry Not Found', 'smart-programme-finder' ) . '</h1></div>';
                 return;
@@ -1224,23 +1199,13 @@ class SPF_Admin {
         }
 
         /* ---------- Overview: All forms + chart ---------- */
-        $all_entries  = get_option( 'spf_entries', array() );
-        $total        = count( $all_entries );
-        $thirty_ago   = gmdate( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
-        $seven_ago    = gmdate( 'Y-m-d H:i:s', strtotime( '-7 days' ) );
-
-        /* Build daily counts for last 30 days */
-        $chart_data = array();
-        for ( $i = 29; $i >= 0; $i-- ) {
-            $day              = gmdate( 'Y-m-d', strtotime( "-{$i} days" ) );
-            $chart_data[ $day ] = 0;
-        }
-        foreach ( $all_entries as $e ) {
-            $day = substr( $e['created_at'] ?? '', 0, 10 );
-            if ( isset( $chart_data[ $day ] ) ) {
-                $chart_data[ $day ]++;
-            }
-        }
+        $entries_store    = $this->get_entries_store();
+        $total            = $entries_store->count_entries();
+        $thirty_ago       = gmdate( 'Y-m-d H:i:s', strtotime( '-30 days' ) );
+        $chart_data       = $entries_store->get_daily_counts( 30 );
+        $all_time_counts  = $entries_store->get_counts_by_form();
+        $last_30_counts   = $entries_store->get_counts_by_form( $thirty_ago );
+        $last_entry_dates = $entries_store->get_last_entry_dates_by_form();
         ?>
         <div class="wrap spf-admin-wrap spf-entries-wrap">
             <h1><?php esc_html_e( 'Entries', 'smart-programme-finder' ); ?></h1>
@@ -1281,9 +1246,9 @@ class SPF_Admin {
                     <tbody>
                         <?php foreach ( $forms as $form ) :
                             $fid       = (int) $form['id'];
-                            $all_count = count( $this->get_entries_for_form( $fid ) );
-                            $last30    = $this->get_entries_since( $fid, $thirty_ago );
-                            $last_date = $this->get_last_entry_date( $fid );
+                            $all_count = $all_time_counts[ $fid ] ?? 0;
+                            $last30    = $last_30_counts[ $fid ] ?? 0;
+                            $last_date = $last_entry_dates[ $fid ] ?? '';
                         ?>
                         <tr>
                             <td>
@@ -1466,6 +1431,8 @@ class SPF_Admin {
                     <a href="<?php echo esc_url( admin_url( 'admin.php?page=spf-forms' ) ); ?>" class="spf-topbar-btn spf-topbar-btn--close" title="<?php esc_attr_e( 'Close', 'smart-programme-finder' ); ?>">&times;</a>
                 </div>
             </div>
+
+            <div class="spf-builder-ajax-notices" aria-live="polite"></div>
 
             <!--  BODY  -->
             <div class="spf-builder-body">
@@ -2104,7 +2071,7 @@ class SPF_Admin {
 
         $form_id = isset( $_POST['form_id'] ) ? absint( $_POST['form_id'] ) : 0;
         if ( 0 === $form_id ) {
-            wp_send_json_error( array( 'message' => __( 'Invalid form.', 'smart-programme-finder' ) ) );
+            $this->send_ajax_error( __( 'Invalid form.', 'smart-programme-finder' ), 400 );
         }
 
         /* ── Form meta (name, general, appearance) ── */
@@ -2143,7 +2110,7 @@ class SPF_Admin {
         unset( $form );
 
         if ( ! $found ) {
-            wp_send_json_error( array( 'message' => __( 'Form not found.', 'smart-programme-finder' ) ) );
+            $this->send_ajax_error( __( 'Form not found.', 'smart-programme-finder' ), 404 );
         }
 
         update_option( 'spf_forms', $forms );
@@ -2237,7 +2204,7 @@ class SPF_Admin {
         $type    = isset( $_POST['field_type'] ) ? sanitize_text_field( wp_unslash( $_POST['field_type'] ) ) : 'text';
 
         if ( 0 === $form_id || ! array_key_exists( $type, self::FIELD_TYPES ) ) {
-            wp_send_json_error( array( 'message' => __( 'Invalid request.', 'smart-programme-finder' ) ) );
+            $this->send_ajax_error( __( 'Invalid request.', 'smart-programme-finder' ), 400 );
         }
 
         $fields   = get_option( 'spf_fields', array() );
@@ -2290,7 +2257,7 @@ class SPF_Admin {
         $field_id = isset( $_POST['field_id'] ) ? absint( $_POST['field_id'] ) : 0;
 
         if ( 0 === $field_id ) {
-            wp_send_json_error( array( 'message' => __( 'Invalid field.', 'smart-programme-finder' ) ) );
+            $this->send_ajax_error( __( 'Invalid field.', 'smart-programme-finder' ), 400 );
         }
 
         $fields = get_option( 'spf_fields', array() );
@@ -2324,7 +2291,7 @@ class SPF_Admin {
         $conditionals_raw = isset( $_POST['conditionals'] ) ? wp_unslash( $_POST['conditionals'] ) : '[]';
 
         if ( 0 === $field_id || '' === $label ) {
-            wp_send_json_error( array( 'message' => __( 'Label is required.', 'smart-programme-finder' ) ) );
+            $this->send_ajax_error( __( 'Label is required.', 'smart-programme-finder' ), 400 );
         }
         if ( ! array_key_exists( $type, self::FIELD_TYPES ) ) {
             $type = 'text';
@@ -2390,7 +2357,7 @@ class SPF_Admin {
         update_option( 'spf_fields', $fields );
 
         if ( ! $updated_field ) {
-            wp_send_json_error( array( 'message' => __( 'Field not found.', 'smart-programme-finder' ) ) );
+            $this->send_ajax_error( __( 'Field not found.', 'smart-programme-finder' ), 404 );
         }
 
         ob_start();
@@ -2415,7 +2382,7 @@ class SPF_Admin {
         $order_raw = isset( $_POST['order'] ) ? array_map( 'absint', (array) wp_unslash( $_POST['order'] ) ) : array();
 
         if ( 0 === $form_id || empty( $order_raw ) ) {
-            wp_send_json_error( array( 'message' => __( 'Invalid request.', 'smart-programme-finder' ) ) );
+            $this->send_ajax_error( __( 'Invalid request.', 'smart-programme-finder' ), 400 );
         }
 
         $all_fields = get_option( 'spf_fields', array() );
@@ -2456,7 +2423,7 @@ class SPF_Admin {
         $form_id  = isset( $_POST['form_id'] ) ? absint( $_POST['form_id'] ) : 0;
 
         if ( 0 === $field_id ) {
-            wp_send_json_error( array( 'message' => __( 'Invalid field.', 'smart-programme-finder' ) ) );
+            $this->send_ajax_error( __( 'Invalid field.', 'smart-programme-finder' ), 400 );
         }
 
         $fields = get_option( 'spf_fields', array() );
@@ -2471,7 +2438,7 @@ class SPF_Admin {
         }
 
         if ( ! $source ) {
-            wp_send_json_error( array( 'message' => __( 'Field not found.', 'smart-programme-finder' ) ) );
+            $this->send_ajax_error( __( 'Field not found.', 'smart-programme-finder' ), 404 );
         }
 
         $new_id    = count( $fields ) > 0 ? max( array_column( $fields, 'id' ) ) + 1 : 1;

@@ -3,7 +3,7 @@
  * Plugin Name: Smart Programme Finder
  * Plugin URI:  https://example.com/smart-programme-finder
  * Description: A no-code recommendation engine that helps visitors find the right programme through guided forms and conditional rules.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Smart Programme Finder
  * Author URI:  https://example.com
  * Text Domain: smart-programme-finder
@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /* ──────────────────────────────────────────────
  * Constants
  * ──────────────────────────────────────────── */
-define( 'SPF_VERSION', '1.0.0' );
+define( 'SPF_VERSION', '1.0.1' );
 define( 'SPF_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SPF_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SPF_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
@@ -29,6 +29,7 @@ define( 'SPF_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 /* ──────────────────────────────────────────────
  * Autoload classes
  * ──────────────────────────────────────────── */
+require_once SPF_PLUGIN_DIR . 'includes/class-entries-store.php';
 require_once SPF_PLUGIN_DIR . 'includes/class-admin.php';
 require_once SPF_PLUGIN_DIR . 'includes/class-ajax.php';
 require_once SPF_PLUGIN_DIR . 'includes/class-shortcode.php';
@@ -60,14 +61,12 @@ register_activation_hook( __FILE__, function () {
     if ( ! get_option( 'spf_confirmations' ) ) {
         update_option( 'spf_confirmations', array() );
     }
-    if ( ! get_option( 'spf_entries' ) ) {
-        update_option( 'spf_entries', array() );
-    }
     if ( ! get_option( 'spf_settings' ) ) {
         update_option( 'spf_settings', array(
             'fallback_message' => __( 'We could not find an exact match. Please contact our admissions team for guidance.', 'smart-programme-finder' ),
         ) );
     }
+    SPF_Entries_Store::activate();
     update_option( 'spf_version', SPF_VERSION );
 } );
 
@@ -84,6 +83,8 @@ register_deactivation_hook( __FILE__, function () {
 add_action( 'plugins_loaded', function () {
     load_plugin_textdomain( 'smart-programme-finder', false, dirname( SPF_PLUGIN_BASENAME ) . '/languages' );
 } );
+
+SPF_Entries_Store::maybe_upgrade();
 
 // Admin screens
 if ( is_admin() ) {

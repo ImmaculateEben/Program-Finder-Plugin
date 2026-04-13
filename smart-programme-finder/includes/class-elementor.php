@@ -1416,7 +1416,7 @@ class SPF_Elementor_Widget extends Widget_Base {
             foreach ( $forms as $f ) {
                 if ( (int) $f['id'] === $form_id ) {
                     $form_name = $f['name'] ?? '';
-                    $form_desc = $f['description'] ?? '';
+                    $form_desc = $f['general']['description'] ?? '';
                     break;
                 }
             }

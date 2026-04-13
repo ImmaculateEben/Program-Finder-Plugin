@@ -1250,6 +1250,14 @@
     color: #065f46;
     border: 1px solid #a7f3d0;
 }
+.spf-builder-notice--error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+.spf-builder-ajax-notices {
+    padding: 16px 24px 0;
+}
 
 /* ─── Responsive ──────────────────────────── */
 @media (max-width: 960px) {
