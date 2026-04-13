@@ -1015,9 +1015,7 @@ class SPF_Admin {
                     <?php else : foreach ( $forms as $form ) :
                         $fid         = (int) $form['id'];
                         $field_count = count( $this->get_fields_for_form( $fid ) );
-                        $entry_count = count( array_filter( $all_entries, function( $e ) use ( $fid ) {
-                            return (int) ( $e['form_id'] ?? 0 ) === $fid;
-                        } ) );
+                        $entry_count = $this->get_entries_store()->count_entries( $fid );
                         $created_at  = $form['created_at'] ?? '';
                         $edit_url    = admin_url( 'admin.php?page=spf-form-edit&form_id=' . $fid );
                         $entries_url = admin_url( 'admin.php?page=spf-entries&view=form&form_id=' . $fid );
